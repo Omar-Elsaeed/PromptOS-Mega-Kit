@@ -1,0 +1,6 @@
+{
+  "name": "PromptOS MegaKit",
+  "description": "Interactive AI Prompt Library and Prompt Engineering Studio featuring 100,000 prompts across 204 niches, Amazon Bedrock AgentCore Generator, Fable 5, GEPA, 9-Step Mediation, LangChain, CrewAI, and Evals.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
