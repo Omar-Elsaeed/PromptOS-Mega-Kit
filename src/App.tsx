@@ -22,6 +22,7 @@ import { BedrockAgentStudio } from './components/BedrockAgentStudio';
 import { SavedDrawers } from './components/SavedDrawers';
 import { Footer } from './components/Footer';
 import { CheckCircle2, Copy } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('library');
@@ -274,6 +275,9 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Vercel Analytics */}
+      <Analytics />
     </div>
   );
 }
