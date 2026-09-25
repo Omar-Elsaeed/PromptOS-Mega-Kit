@@ -20,11 +20,22 @@ async function startServer() {
 
   // RFC 8288 Web Linking & RFC 9727 API Catalog Link headers for AI Agent Discovery
   const AGENT_LINK_HEADERS = [
-    '</.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"',
+    '</.well-known/api-catalog>; rel="api-catalog"',
     '</docs/api>; rel="service-doc"',
-    '</openapi.json>; rel="service-desc"; type="application/json"',
+    '</openapi.json>; rel="service-desc"',
+    '</llms.txt>; rel="describedby"',
     '</api/health>; rel="status"',
+    '</.well-known/dns-aid>; rel="dns-aid"',
     '</.well-known/dns-aid.json>; rel="dns-aid"',
+    '</.well-known/ai-catalog.json>; rel="ai-catalog"',
+    '</.well-known/oauth-protected-resource>; rel="oauth-protected-resource"',
+    '</.well-known/openid-configuration>; rel="openid-configuration"',
+    '</.well-known/oauth-authorization-server>; rel="oauth-authorization-server"',
+    '</.well-known/mcp/server-card.json>; rel="mcp-server-card"',
+    '</.well-known/mcp.json>; rel="mcp"',
+    '</.well-known/http-message-signatures-directory>; rel="http-message-signatures-directory"',
+    '</.well-known/agent-skills/index.json>; rel="agent-skills-index"',
+    '</.well-known/agent-skills/link-headers/SKILL.md>; rel="agent-skill"',
     '</.well-known/agent-skills/dns-aid/SKILL.md>; rel="agent-skill"',
     '</.well-known/agent-skills/markdown-negotiation/SKILL.md>; rel="agent-skill"',
     '</.well-known/agent-skills/web-bot-auth/SKILL.md>; rel="agent-skill"',
@@ -34,33 +45,37 @@ async function startServer() {
     '</.well-known/agent-skills/oauth-discovery/SKILL.md>; rel="agent-skill"',
     '</.well-known/agent-skills/oauth-protected-resource/SKILL.md>; rel="agent-skill"',
     '</.well-known/agent-skills/auth-md/SKILL.md>; rel="agent-skill"',
-    '</.well-known/agent-skills/mcp-server-card/SKILL.md>; rel="agent-skill"',
-    '</.well-known/agent-skills/agent-skills/SKILL.md>; rel="agent-skill"',
-    '</.well-known/agent-skills/webmcp/SKILL.md>; rel="agent-skill"',
     '</.well-known/agent-skills/ard/SKILL.md>; rel="agent-skill"',
-    '</.well-known/agent-skills/index.json>; rel="agent-skills-index"',
-    '</.well-known/agent-skills/webmcp/SKILL.md>; rel="webmcp"',
-    '</.well-known/ai-catalog.json>; rel="ai-catalog"; type="application/json"',
     '</auth.md>; rel="auth-md"',
-    '</.well-known/mcp/server-card.json>; rel="mcp-server-card"',
-    '</.well-known/mcp.json>; rel="mcp"',
-    '</.well-known/openid-configuration>; rel="openid-configuration"',
-    '</.well-known/oauth-authorization-server>; rel="oauth-authorization-server"',
-    '</.well-known/oauth-protected-resource>; rel="oauth-protected-resource"',
-    '</.well-known/http-message-signatures-directory>; rel="http-message-signatures-directory"',
     '</robots.txt>; rel="robots"',
+    '</sitemap.xml>; rel="sitemap"',
     '</dns-aid.zone>; rel="dns-zone"',
     '</dns-query>; rel="dns-query"',
-    '</>; rel="alternate"; type="text/markdown"',
-  ].join(", ");
+    '</>; rel="alternate"; type="text/markdown"'
+  ];
 
-  // Global middleware: inject Link headers on homepage, HTML responses, and root
+  // Global middleware: inject RFC 8288 Link headers on homepage, HTML responses, and root
   app.use((req, res, next) => {
-    if (req.method === "GET" || req.method === "HEAD") {
-      const p = req.path;
-      if (p === "/" || p === "/index.html" || !p.includes(".") || (req.headers.accept && req.headers.accept.includes("text/html"))) {
-        res.setHeader("Link", AGENT_LINK_HEADERS);
-      }
+    const p = req.path;
+    const isHtmlRoute =
+      p === "/" ||
+      p === "/index.html" ||
+      p === "" ||
+      !p.includes(".") ||
+      (req.headers.accept && req.headers.accept.includes("text/html"));
+
+    if (isHtmlRoute && (req.method === "GET" || req.method === "HEAD")) {
+      res.setHeader("Link", AGENT_LINK_HEADERS);
+
+      const origWriteHead = res.writeHead;
+      res.writeHead = function (this: any, statusCode: number, ...args: any[]) {
+        try {
+          if (!this.getHeader("Link")) {
+            this.setHeader("Link", AGENT_LINK_HEADERS);
+          }
+        } catch {}
+        return origWriteHead.call(this, statusCode, ...args);
+      };
     }
     next();
   });
@@ -721,29 +736,141 @@ ${SITEMAP_ROUTES.map((route) => {
   });
 
   // DNS-AID Discovery JSON Endpoint (draft-mozleywilliams-dnsop-dnsaid / RFC 9460)
-  app.get(["/.well-known/dns-aid.json", "/.well-known/dns-aid"], (req, res) => {
+  app.all(["/.well-known/dns-aid.json", "/.well-known/dns-aid", "/dns-aid.json", "/dns-aid"], (req, res) => {
     const origin = getRequestOrigin(req);
     const domain = origin.replace(/^https?:\/\//, "").split(":")[0];
     const today = new Date().toISOString().split("T")[0];
 
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.status(200).json({
+    res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept");
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.setHeader("Content-Signal", "ai-train=yes, search=yes, ai-input=yes");
+
+    if (req.method === "OPTIONS") {
+      return res.status(204).end();
+    }
+
+    const payload = {
       "$schema": "https://dns-aid.org/schemas/v1/dns-aid.json",
       "version": "1.0.0",
       "domain": domain,
       "standard": "draft-mozleywilliams-dnsop-dnsaid",
       "rfc": ["RFC 9460", "RFC 8484", "RFC 4033", "RFC 4034", "RFC 4035"],
       "lastUpdated": today,
+      "title": "PromptOS MegaKit DNS for AI Discovery (DNS-AID)",
+      "description": "DNS-AID ServiceMode SVCB/HTTPS discovery entrypoint records under _agents namespace signed with DNSSEC.",
       "dnssec": {
         "enabled": true,
         "algorithm": "ECDSAP256SHA256",
         "algorithmId": 13,
         "keyTag": 41829,
         "digestType": 2,
+        "authenticatedData": true,
         "dsRecord": `${domain}. IN DS 41829 13 2 9B8E3D7C5F4A1E2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2D3E4F5A6B`,
         "dnskey": `${domain}. IN DNSKEY 257 3 13 mdsswUyr3DPW132mOi8V9xESWE8jTo0dxCjjnopKl+GqJxpVXckHAeF+KkxLbxILfDLUT0rIr9ZeEvV60o30Zg==`
       },
+      "records": [
+        {
+          "name": `_index._agents.${domain}`,
+          "fqdn": `_index._agents.${domain}.`,
+          "type": "SVCB",
+          "priority": 1,
+          "target": `${domain}.`,
+          "params": {
+            "alpn": "h2,h3",
+            "port": 443,
+            "endpoint": "/.well-known/api-catalog",
+            "mandatory": "alpn"
+          },
+          "zone": `_index._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port="443" endpoint="/.well-known/api-catalog" key65300="path=/.well-known/api-catalog" mandatory="alpn"`
+        },
+        {
+          "name": `_index._agents.${domain}`,
+          "fqdn": `_index._agents.${domain}.`,
+          "type": "HTTPS",
+          "priority": 1,
+          "target": `${domain}.`,
+          "params": {
+            "alpn": "h2,h3",
+            "port": 443,
+            "endpoint": "/.well-known/api-catalog"
+          },
+          "zone": `_index._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port="443" endpoint="/.well-known/api-catalog"`
+        },
+        {
+          "name": `_index._agents.${domain}`,
+          "fqdn": `_index._agents.${domain}.`,
+          "type": "TXT",
+          "value": `v=dnsaid1; type=index; catalog=${origin}/.well-known/api-catalog; desc=PromptOS AI Discovery Index`,
+          "zone": `_index._agents.${domain}. 300 IN TXT "v=dnsaid1; type=index; catalog=${origin}/.well-known/api-catalog; desc=PromptOS AI Discovery Index"`
+        },
+        {
+          "name": `_a2a._agents.${domain}`,
+          "fqdn": `_a2a._agents.${domain}.`,
+          "type": "SVCB",
+          "priority": 1,
+          "target": `${domain}.`,
+          "params": {
+            "alpn": "h2,h3",
+            "port": 443,
+            "endpoint": "/api/gemini/stream",
+            "mandatory": "alpn"
+          },
+          "zone": `_a2a._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port="443" endpoint="/api/gemini/stream" mandatory="alpn"`
+        },
+        {
+          "name": `_a2a._agents.${domain}`,
+          "fqdn": `_a2a._agents.${domain}.`,
+          "type": "HTTPS",
+          "priority": 1,
+          "target": `${domain}.`,
+          "params": {
+            "alpn": "h2,h3",
+            "port": 443,
+            "endpoint": "/api/gemini/stream"
+          },
+          "zone": `_a2a._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port="443" endpoint="/api/gemini/stream"`
+        },
+        {
+          "name": `_a2a._agents.${domain}`,
+          "fqdn": `_a2a._agents.${domain}.`,
+          "type": "TXT",
+          "value": `v=dnsaid1; proto=a2a; endpoint=${origin}/api/gemini/stream; alpn=h2,h3`,
+          "zone": `_a2a._agents.${domain}. 300 IN TXT "v=dnsaid1; proto=a2a; endpoint=${origin}/api/gemini/stream; alpn=h2,h3"`
+        },
+        {
+          "name": `_promptos._a2a._agents.${domain}`,
+          "fqdn": `_promptos._a2a._agents.${domain}.`,
+          "type": "SVCB",
+          "priority": 1,
+          "target": `${domain}.`,
+          "params": {
+            "alpn": "h2,h3",
+            "port": 443,
+            "endpoint": "/api/gemini/generate",
+            "mandatory": "alpn"
+          },
+          "zone": `_promptos._a2a._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port="443" endpoint="/api/gemini/generate" mandatory="alpn"`
+        }
+      ],
+      "entrypoints": [
+        {
+          "entrypoint": "index",
+          "domain": `_index._agents.${domain}`,
+          "record": `1 ${domain}. alpn="h2,h3" port="443" endpoint="/.well-known/api-catalog" key65300="path=/.well-known/api-catalog" mandatory="alpn"`,
+          "protocols": ["h2", "h3"],
+          "endpoint": `${origin}/.well-known/api-catalog`
+        },
+        {
+          "entrypoint": "a2a",
+          "domain": `_a2a._agents.${domain}`,
+          "record": `1 ${domain}. alpn="h2,h3" port="443" endpoint="/api/gemini/stream" mandatory="alpn"`,
+          "protocols": ["h2", "h3"],
+          "endpoint": `${origin}/api/gemini/stream`
+        }
+      ],
       "endpoints": {
         "index": {
           "recordName": `_index._agents.${domain}`,
@@ -789,7 +916,13 @@ ${SITEMAP_ROUTES.map((route) => {
         "zoneFile": `${origin}/dns-aid.zone`,
         "dohQuery": `${origin}/dns-query`
       }
-    });
+    };
+
+    if (req.method === "HEAD") {
+      return res.status(200).end();
+    }
+
+    res.status(200).json(payload);
   });
 
   // DNS-AID RFC 1035 Zone Export
@@ -1032,13 +1165,20 @@ _promptos._a2a._agents IN TXT  "v=dnsaid1; name=PromptOS MegaKit; capabilities=p
   });
 
   // RFC 9728 OAuth 2.0 Protected Resource Metadata endpoint
-  app.get("/.well-known/oauth-protected-resource", (req, res) => {
+  app.all(["/.well-known/oauth-protected-resource", "/.well-known/oauth-protected-resource.json", "/oauth-protected-resource"], (req, res) => {
     const origin = getRequestOrigin(req);
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept");
     res.setHeader("Cache-Control", "public, max-age=3600");
     res.setHeader("Content-Signal", "ai-train=yes, search=yes, ai-input=yes");
-    res.status(200).json({
+
+    if (req.method === "OPTIONS") {
+      return res.status(204).end();
+    }
+
+    const metadata = {
       resource: origin,
       authorization_servers: [origin],
       scopes_supported: [
@@ -1062,6 +1202,47 @@ _promptos._a2a._agents IN TXT  "v=dnsaid1; name=PromptOS MegaKit; capabilities=p
         credential_types_supported: ["access_token", "api_key"]
       },
       resource_documentation: `${origin}/docs/api`
+    };
+
+    if (req.method === "HEAD") {
+      return res.status(200).end();
+    }
+
+    res.status(200).json(metadata);
+  });
+
+  // RFC 9728 / RFC 6750 Protected API Endpoint with WWW-Authenticate resource_metadata discovery
+  app.all("/api/protected", (req, res) => {
+    const origin = getRequestOrigin(req);
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    if (req.method === "OPTIONS") {
+      return res.status(204).end();
+    }
+
+    const authHeader = req.headers["authorization"] || "";
+    if (!authHeader.startsWith("Bearer ") || authHeader.length < 10) {
+      // RFC 9728 Section 3: 401 response with WWW-Authenticate header containing resource_metadata
+      res.setHeader(
+        "WWW-Authenticate",
+        `Bearer realm="${origin}", resource_metadata="${origin}/.well-known/oauth-protected-resource", error="invalid_token", error_description="Missing or invalid OAuth access token"`
+      );
+      return res.status(401).json({
+        error: "unauthorized",
+        message: "Authentication required to access protected PromptOS resource",
+        resource_metadata: `${origin}/.well-known/oauth-protected-resource`,
+        authorization_servers: [origin],
+        scopes_supported: ["prompts:read", "prompts:write", "agents:read", "agents:execute"]
+      });
+    }
+
+    res.status(200).json({
+      status: "authenticated",
+      resource: origin,
+      client: "agent",
+      granted_scopes: ["prompts:read", "agents:read"]
     });
   });
 

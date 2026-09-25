@@ -1,0 +1,36 @@
+# PromptOS MegaKit — Complete Knowledge & Agent Reference (llms-full.txt)
+
+> Full documentation of PromptOS MegaKit system architecture, prompt engineering methodology, reasoning frameworks, API endpoints, and agent discovery standards.
+
+## 1. System Overview
+PromptOS MegaKit serves engineering teams and autonomous AI agents with curated prompt blueprints, reasoning models, and standard-compliant interfaces.
+
+### Core Sections
+- Prompt Vault (100,000+ entries)
+- Deterministic Reasoning Frameworks (Fable 5, GEPA, 9-Step Mediation)
+- Bedrock AgentCore Generator
+- LangChain LCEL & CrewAI Designers
+- Model Benchmarks & Synthetic Evaluation Harness
+
+## 2. API Reference & Discovery
+All API endpoints support modern HTTP content negotiation and agent standards:
+- `GET /.well-known/api-catalog`: RFC 9727 API Catalog with Linkset format
+- `GET /openapi.json`: OpenAPI 3.1 JSON definition
+- `GET /docs/api`: Interactive HTML API documentation
+- `GET /llms.txt`: Summary site description per llmstxt.org
+- `GET /api/health`: Health status endpoint
+- `POST /api/gemini/generate`: AI text and code generation
+- `POST /api/gemini/stream`: SSE token streaming endpoint
+- `GET /.well-known/oauth-protected-resource`: RFC 9728 OAuth Protected Resource Metadata
+- `GET /.well-known/dns-aid`: DNS for AI Discovery (DNS-AID) configuration
+- `GET /.well-known/ai-catalog.json`: ARD (Agentic Resource Discovery) manifest
+
+## 3. RFC 8288 Web Linking
+PromptOS sends `Link:` response headers on all pages and discovery endpoints advertising:
+- `rel="api-catalog"` -> `/.well-known/api-catalog`
+- `rel="service-doc"` -> `/docs/api`
+- `rel="service-desc"` -> `/openapi.json`
+- `rel="describedby"` -> `/llms.txt`
+- `rel="status"` -> `/api/health`
+- `rel="dns-aid"` -> `/.well-known/dns-aid`
+- `rel="alternate"` -> `/` with `type="text/markdown"`

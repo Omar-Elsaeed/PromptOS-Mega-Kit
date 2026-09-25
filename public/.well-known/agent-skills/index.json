@@ -42,6 +42,14 @@
       "digest": "sha256:c02317d7be9c6c164741481827abbfde2c88ca91e5f9ce8f52505736e6de88c2"
     },
     {
+      "name": "link-headers",
+      "type": "skill-md",
+      "description": "Add Link response headers for agent discovery per RFC 8288 and RFC 9727 Section 3, advertising machine-readable API catalogs, specifications, documentation, and site descriptions.",
+      "url": "/.well-known/agent-skills/link-headers/SKILL.md",
+      "sha256": "528d641c37ec53d8cb6c015a7e237cc73071b3bc1b5ccee6a75c6ad663c725bd",
+      "digest": "sha256:528d641c37ec53d8cb6c015a7e237cc73071b3bc1b5ccee6a75c6ad663c725bd"
+    },
+    {
       "name": "oauth-protected-resource",
       "type": "skill-md",
       "description": "Publish OAuth 2.0 Protected Resource Metadata (RFC 9728) at /.well-known/oauth-protected-resource with resource identifier, authorization_servers, and scopes_supported, enabling AI agents to discover how to authenticate with protected APIs.",

@@ -1,0 +1,42 @@
+# PromptOS MegaKit — 100K AI Prompt Library & Prompt Engineering Studio
+
+> PromptOS MegaKit is an enterprise-grade AI prompt engineering workspace and prompt vault featuring 100,000+ battle-tested prompts across 204 industry niches, deterministic reasoning frameworks (Fable 5, GEPA, 9-Step Mediation), agent blueprints (Amazon Bedrock AgentCore, LangChain LCEL, CrewAI), and comprehensive AI agent discovery standards (RFC 8288 Link Headers, RFC 9727 API Catalog, RFC 9728 OAuth Protected Resource Metadata, DNS-AID, ARD ai-catalog.json, and WebMCP).
+
+## Core Capabilities
+- **100,000+ Production Prompts**: Tested across 204 niches including Healthcare, FinTech, Legal, DevOps, CyberSecurity, Product Management, System Architecture, and Marketing.
+- **Reasoning Frameworks**:
+  - **Fable 5**: Framing, Assumptions, Breakdown, Logic verification, Execution.
+  - **GEPA Loop**: Goal, Execution, Prompt, Audit.
+  - **9-Step Mediation**: Customer escalation and dispute resolution framework.
+- **Agent Blueprints & Execution**:
+  - Amazon Bedrock AgentCore Studio (Claude 3.5 Sonnet, Amazon Titan)
+  - LangChain Expression Language (LCEL) Chain Builder
+  - CrewAI Multi-Agent Collaboration Engine
+  - AI Synthetic Evaluation & Benchmark Suite
+- **Standards & Discovery for Agents**:
+  - RFC 8288 Web Linking (`Link:` response headers)
+  - RFC 9727 API Catalog (`/.well-known/api-catalog`)
+  - RFC 9728 OAuth 2.0 Protected Resource Metadata (`/.well-known/oauth-protected-resource`)
+  - DNS for AI Discovery (DNS-AID & RFC 9460 SVCB/HTTPS)
+  - ARD Manifest (`/.well-known/ai-catalog.json`)
+  - Content Negotiation for Markdown (`Accept: text/markdown`)
+
+## Key Links & Documentation
+- [API Documentation](/docs/api): Complete documentation for public endpoints and agent integrations.
+- [OpenAPI 3.1 Specification](/openapi.json): Machine-readable schema of all API endpoints.
+- [API Catalog (RFC 9727)](/.well-known/api-catalog): Standardized Linkset catalog of available APIs.
+- [ARD Manifest (ai-catalog.json)](/.well-known/ai-catalog.json): Agentic Resource Discovery manifest.
+- [OAuth Protected Resource (RFC 9728)](/.well-known/oauth-protected-resource): OAuth authorization and token discovery.
+- [Agent Skills Directory](/.well-known/agent-skills/index.json): Index of published SKILL.md standards.
+- [DNS-AID Discovery](/.well-known/dns-aid): DNS-based agent discovery metadata.
+- [Health Status](/api/health): Runtime status and AI model readiness check.
+- [Robots Protocol](/robots.txt): Crawler and agent permissions with Content Signals.
+- [Sitemap](/sitemap.xml): Comprehensive URL index.
+
+## Optional & Deep Dive Links
+- [Fable 5 Reasoning Guide](/fable5): Detailed documentation and step-by-step implementation guide.
+- [Smart Builder](/builder): Guided wizard to construct tailored, production-ready prompts.
+- [Bedrock AgentCore](/bedrock): Amazon Bedrock agent generator with schema validation.
+- [LangChain LCEL](/langchain): LCEL runnable sequence generator.
+- [CrewAI Studio](/crewai): Multi-agent crew definitions with roles, backstories, and goals.
+- [Prompt Library](/library): Searchable, filterable repository of 100K prompts.
