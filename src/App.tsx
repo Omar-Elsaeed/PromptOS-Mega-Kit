@@ -24,8 +24,28 @@ import { Footer } from './components/Footer';
 import { CheckCircle2, Copy } from 'lucide-react';
 import { Analytics } from '@vercel/analytics/react';
 
+const VALID_TABS: TabType[] = [
+  'library', 'fable5', 'builder', 'bedrock', 'langchain', 'crewai',
+  'evals', 'finetuning', 'automation', 'agents', 'skills', 'compare',
+  'playground', 'community', 'knowledge', 'store', 'blueprint'
+];
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabType>('library');
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    try {
+      const searchParam = new URLSearchParams(window.location.search).get('tab');
+      if (searchParam && VALID_TABS.includes(searchParam as TabType)) {
+        return searchParam as TabType;
+      }
+      const pathParam = window.location.pathname.replace(/^\/+|\/+$/g, '');
+      if (pathParam && VALID_TABS.includes(pathParam as TabType)) {
+        return pathParam as TabType;
+      }
+    } catch {
+      // Fallback to library
+    }
+    return 'library';
+  });
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   // Favorites & History state
@@ -67,6 +87,40 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  // Sync activeTab with URL history
+  useEffect(() => {
+    try {
+      const currentUrl = new URL(window.location.href);
+      if (activeTab === 'library') {
+        currentUrl.searchParams.delete('tab');
+      } else {
+        currentUrl.searchParams.set('tab', activeTab);
+      }
+      window.history.replaceState({ tab: activeTab }, '', currentUrl.pathname + currentUrl.search);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [activeTab]);
+
+  // Listen to popstate (back/forward navigation)
+  useEffect(() => {
+    const handlePopState = () => {
+      const searchParam = new URLSearchParams(window.location.search).get('tab');
+      if (searchParam && VALID_TABS.includes(searchParam as TabType)) {
+        setActiveTab(searchParam as TabType);
+        return;
+      }
+      const pathParam = window.location.pathname.replace(/^\/+|\/+$/g, '');
+      if (pathParam && VALID_TABS.includes(pathParam as TabType)) {
+        setActiveTab(pathParam as TabType);
+        return;
+      }
+      setActiveTab('library');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Save favorites to localStorage
   useEffect(() => {

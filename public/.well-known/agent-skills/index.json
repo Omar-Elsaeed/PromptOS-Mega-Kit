@@ -1,0 +1,109 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "ard",
+      "type": "skill-md",
+      "description": "Publish an Agentic Resource Discovery (ARD) capability manifest at /.well-known/ai-catalog.json with specVersion, host metadata, and typed entries containing urn:air identifiers, IANA media types, representativeQueries for vector indexing, and URLs for autonomous agent discovery.",
+      "url": "/.well-known/agent-skills/ard/SKILL.md",
+      "sha256": "49c6ead6bf936b5526c40b82fa0763d148ad100620d52efe48ba4c9779b0c7dc",
+      "digest": "sha256:49c6ead6bf936b5526c40b82fa0763d148ad100620d52efe48ba4c9779b0c7dc"
+    },
+    {
+      "name": "webmcp",
+      "type": "skill-md",
+      "description": "Support WebMCP (Web Model Context Protocol) to expose site tools and key actions directly to AI agents in the browser via navigator.modelContext.provideContext() with tool definitions, JSON schemas, and execute handlers.",
+      "url": "/.well-known/agent-skills/webmcp/SKILL.md",
+      "sha256": "30737b79f56b1082e0245acc31a5894fe45044fa1051b5e21ffacf159acb94a2",
+      "digest": "sha256:30737b79f56b1082e0245acc31a5894fe45044fa1051b5e21ffacf159acb94a2"
+    },
+    {
+      "name": "agent-skills",
+      "type": "skill-md",
+      "description": "Publish a skills discovery index at /.well-known/agent-skills/index.json per Agent Skills Discovery RFC v0.2.0 with schema and SHA256 integrity digests.",
+      "url": "/.well-known/agent-skills/agent-skills/SKILL.md",
+      "sha256": "19d782e1546ca184130a0b0cb2db101bdd81451285ec59a8b8f67b034ef7492b",
+      "digest": "sha256:19d782e1546ca184130a0b0cb2db101bdd81451285ec59a8b8f67b034ef7492b"
+    },
+    {
+      "name": "mcp-server-card",
+      "type": "skill-md",
+      "description": "Publish an MCP Server Card (SEP-1649 / SEP-2127) at /.well-known/mcp/server-card.json and /.well-known/mcp.json with serverInfo (name, version), transport endpoint, and capabilities for automated AI client and agent discovery.",
+      "url": "/.well-known/agent-skills/mcp-server-card/SKILL.md",
+      "sha256": "c1b79aeeda80c4a026cb1f2e2db02233311eb0fea7fada65923a7aa56de11c3d",
+      "digest": "sha256:c1b79aeeda80c4a026cb1f2e2db02233311eb0fea7fada65923a7aa56de11c3d"
+    },
+    {
+      "name": "auth-md",
+      "type": "skill-md",
+      "description": "Publish auth.md at the site root with AI agent registration instructions, combined with OAuth Protected Resource Metadata (RFC 9728) and the agent_auth block in OAuth Authorization Server Metadata (RFC 8414) for automated agent onboarding and credential issuance.",
+      "url": "/.well-known/agent-skills/auth-md/SKILL.md",
+      "sha256": "c02317d7be9c6c164741481827abbfde2c88ca91e5f9ce8f52505736e6de88c2",
+      "digest": "sha256:c02317d7be9c6c164741481827abbfde2c88ca91e5f9ce8f52505736e6de88c2"
+    },
+    {
+      "name": "oauth-protected-resource",
+      "type": "skill-md",
+      "description": "Publish OAuth 2.0 Protected Resource Metadata (RFC 9728) at /.well-known/oauth-protected-resource with resource identifier, authorization_servers, and scopes_supported, enabling AI agents to discover how to authenticate with protected APIs.",
+      "url": "/.well-known/agent-skills/oauth-protected-resource/SKILL.md",
+      "sha256": "b67a2e391d7d9ac6dfbab703fbea2a2e5aa8781902ccb0f5086c8adb8e4d9e1d",
+      "digest": "sha256:b67a2e391d7d9ac6dfbab703fbea2a2e5aa8781902ccb0f5086c8adb8e4d9e1d"
+    },
+    {
+      "name": "oauth-discovery",
+      "type": "skill-md",
+      "description": "Publish OAuth 2.0 Authorization Server Metadata (RFC 8414) and OpenID Connect Discovery 1.0 metadata at /.well-known/oauth-authorization-server and /.well-known/openid-configuration for automated AI agent authentication.",
+      "url": "/.well-known/agent-skills/oauth-discovery/SKILL.md",
+      "sha256": "6e6865c2b4c3f869c3f44ac16b551ba815de59e9a429708100af45c16804ab72",
+      "digest": "sha256:6e6865c2b4c3f869c3f44ac16b551ba815de59e9a429708100af45c16804ab72"
+    },
+    {
+      "name": "api-catalog",
+      "type": "skill-md",
+      "description": "Publish machine-readable API catalog using RFC 9727 with application/linkset+json format conforming to RFC 9264, enabling automated API discovery for AI agents.",
+      "url": "/.well-known/agent-skills/api-catalog/SKILL.md",
+      "sha256": "519ba9b8a256d17437f9e92e4bcb29372f063ac24c639459288dead42004ad0d",
+      "digest": "sha256:519ba9b8a256d17437f9e92e4bcb29372f063ac24c639459288dead42004ad0d"
+    },
+    {
+      "name": "content-signals",
+      "type": "skill-md",
+      "description": "Declare machine-readable content usage preferences for AI systems using Content-Signal directives (ai-train, search, ai-input) in robots.txt and HTTP headers.",
+      "url": "/.well-known/agent-skills/content-signals/SKILL.md",
+      "sha256": "e11b7a9ee54370ad92fa8d2ea0b5cd509ac4bcc2cd18afb745e421aa2c37da36",
+      "digest": "sha256:e11b7a9ee54370ad92fa8d2ea0b5cd509ac4bcc2cd18afb745e421aa2c37da36"
+    },
+    {
+      "name": "ai-rules",
+      "type": "skill-md",
+      "description": "Configure explicit User-agent rules in robots.txt for AI crawlers including GPTBot, OAI-SearchBot, Claude-Web, and Google-Extended, conforming to RFC 9309 and Cloudflare AI Crawl Control.",
+      "url": "/.well-known/agent-skills/ai-rules/SKILL.md",
+      "sha256": "e48df396f148e665af76a2a96af2b8643ab68d82fa093c4260ac7526784ffd54",
+      "digest": "sha256:e48df396f148e665af76a2a96af2b8643ab68d82fa093c4260ac7526784ffd54"
+    },
+    {
+      "name": "web-bot-auth",
+      "type": "skill-md",
+      "description": "Publish an Ed25519 JWKS directory at /.well-known/http-message-signatures-directory to identify and authenticate automated agent requests via RFC 9421 HTTP Message Signatures.",
+      "url": "/.well-known/agent-skills/web-bot-auth/SKILL.md",
+      "sha256": "7f40b00e3bf3a88231921e9737e9e7d6243726f51f47338ac2ed038b0210a7d8",
+      "digest": "sha256:7f40b00e3bf3a88231921e9737e9e7d6243726f51f47338ac2ed038b0210a7d8"
+    },
+    {
+      "name": "markdown-negotiation",
+      "type": "skill-md",
+      "description": "Return HTML responses as clean markdown when agents request Accept text/markdown while maintaining HTML as default for web browsers.",
+      "url": "/.well-known/agent-skills/markdown-negotiation/SKILL.md",
+      "sha256": "752957a0a1ea910395f003df67d02d38960e9d4f41e967a042979a593daf8a2d",
+      "digest": "sha256:752957a0a1ea910395f003df67d02d38960e9d4f41e967a042979a593daf8a2d"
+    },
+    {
+      "name": "dns-aid",
+      "type": "skill-md",
+      "description": "Publish and discover DNS for AI Discovery (DNS-AID) records using ServiceMode SVCB/HTTPS records with alpn and endpoint parameters under _index._agents and _a2a._agents signed with DNSSEC.",
+      "url": "/.well-known/agent-skills/dns-aid/SKILL.md",
+      "sha256": "1467dfd7fefc68c977759ebf007f6e54b3d6f58499c0671ae94dfca46c3dee78",
+      "digest": "sha256:1467dfd7fefc68c977759ebf007f6e54b3d6f58499c0671ae94dfca46c3dee78"
+    }
+  ]
+}

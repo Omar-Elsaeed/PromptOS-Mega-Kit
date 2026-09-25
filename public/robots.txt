@@ -1,0 +1,121 @@
+# robots.txt for PromptOS MegaKit
+# Compliant with RFC 9309 (Robots Exclusion Protocol) & Cloudflare AI Crawl Control
+
+# Sitemap location
+Sitemap: https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/sitemap.xml
+
+# Content Signals (https://contentsignals.org & draft-romm-aipref-contentsignals)
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+
+# Default rules for general crawlers
+User-agent: *
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+Disallow: /api/
+
+# OpenAI Crawlers (Training & Search)
+User-agent: GPTBot
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+Disallow: /api/
+
+User-agent: OAI-SearchBot
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+Disallow: /api/
+
+# Anthropic Claude Crawlers (Search, Real-time & Training)
+User-agent: Claude-Web
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+Disallow: /api/
+
+User-agent: ClaudeBot
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+Disallow: /api/
+
+User-agent: anthropic-ai
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+Disallow: /api/
+
+# Google AI & Extended Crawlers
+User-agent: Google-Extended
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+Disallow: /api/
+
+# Perplexity AI Search Crawler
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+
+# Apple Intelligence Extended Crawler
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /api/
+
+# Meta AI Crawlers
+User-agent: Meta-ExternalAgent
+Allow: /
+Disallow: /api/
+
+User-agent: FacebookBot
+Allow: /
+Disallow: /api/
+
+# Amazon AI Crawler
+User-agent: Amazonbot
+Allow: /
+Disallow: /api/
+
+# ByteDance AI Crawler
+User-agent: Bytespider
+Allow: /
+Disallow: /api/
+
+# Cohere AI Crawler
+User-agent: Cohere-ai
+Allow: /
+Disallow: /api/
+
+# Diffbot Knowledge Graph Crawler
+User-agent: Diffbot
+Allow: /
+Disallow: /api/
+
+# Common Crawl
+User-agent: CCBot
+Allow: /
+Disallow: /api/
+
+# Standard Search Engine Crawlers
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /api/
+
+User-agent: Slurp
+Allow: /
+Disallow: /api/
+
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+
+User-agent: YandexBot
+Allow: /
+Disallow: /api/

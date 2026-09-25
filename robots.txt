@@ -1,0 +1,76 @@
+# robots.txt for PromptOS MegaKit
+# Compliant with RFC 9309 (Robots Exclusion Protocol)
+
+# Sitemap location
+Sitemap: https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/sitemap.xml
+
+# Default rules for all web crawlers and agents
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# AI Search & Retrieval Agents
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /api/
+
+User-agent: CCBot
+Allow: /
+Disallow: /api/
+
+User-agent: Cohere-ai
+Allow: /
+Disallow: /api/
+
+User-agent: Omgilibot
+Allow: /
+Disallow: /api/
+
+# Standard Search Engine Crawlers
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+
+User-agent: Slurp
+Allow: /
+Disallow: /api/
+
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /api/
+
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+
+User-agent: YandexBot
+Allow: /
+Disallow: /api/

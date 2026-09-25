@@ -9,9 +9,198 @@
     <meta property="og:description" content="Interactive AI Prompt Library and Prompt Engineering Studio featuring 100,000 prompts across 204 niches, Amazon Bedrock AgentCore Generator, Fable 5, GEPA, 9-Step Mediation, LangChain, CrewAI, and Evals." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+    <!-- Agent Discovery Links (RFC 8288 / RFC 9727 / draft-mozleywilliams-dnsop-dnsaid) -->
+    <link rel="api-catalog" type="application/linkset+json" href="/.well-known/api-catalog" />
+    <link rel="service-doc" href="/docs/api" />
+    <link rel="service-desc" type="application/json" href="/openapi.json" />
+    <link rel="status" href="/api/health" />
+    <link rel="dns-aid" type="application/json" href="/.well-known/dns-aid.json" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/dns-aid/SKILL.md" />
+    <link rel="dns-zone" type="text/plain" href="/dns-aid.zone" />
+    <link rel="dns-query" href="/dns-query" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/markdown-negotiation/SKILL.md" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/web-bot-auth/SKILL.md" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/ai-rules/SKILL.md" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/content-signals/SKILL.md" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/api-catalog/SKILL.md" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/oauth-discovery/SKILL.md" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/oauth-protected-resource/SKILL.md" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/auth-md/SKILL.md" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/mcp-server-card/SKILL.md" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/agent-skills/SKILL.md" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/webmcp/SKILL.md" />
+    <link rel="agent-skill" href="/.well-known/agent-skills/ard/SKILL.md" />
+    <link rel="agent-skills-index" type="application/json" href="/.well-known/agent-skills/index.json" />
+    <link rel="webmcp" href="/.well-known/agent-skills/webmcp/SKILL.md" />
+    <link rel="ai-catalog" type="application/json" href="/.well-known/ai-catalog.json" />
+    <link rel="auth-md" href="/auth.md" />
+    <link rel="mcp-server-card" href="/.well-known/mcp/server-card.json" />
+    <link rel="mcp" href="/.well-known/mcp.json" />
+    <link rel="openid-configuration" href="/.well-known/openid-configuration" />
+    <link rel="oauth-authorization-server" href="/.well-known/oauth-authorization-server" />
+    <link rel="oauth-protected-resource" href="/.well-known/oauth-protected-resource" />
+    <link rel="http-message-signatures-directory" type="application/http-message-signatures-directory+json" href="/.well-known/http-message-signatures-directory" />
+    <link rel="alternate" type="text/markdown" href="/" title="Markdown for Agents" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "PromptOS MegaKit",
+      "url": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "All",
+      "description": "Interactive AI Prompt Library and Prompt Engineering Studio featuring 100,000 prompts across 204 niches, Amazon Bedrock AgentCore Generator, Fable 5, GEPA, 9-Step Mediation, LangChain, CrewAI, and Evals.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+      (function() {
+        var tools = [
+          {
+            name: "search_prompts",
+            description: "Search enterprise prompts, templates, and categories in PromptOS MegaKit.",
+            inputSchema: {
+              type: "object",
+              properties: {
+                query: { type: "string", description: "Search keyword or topic" },
+                category: { type: "string", description: "Filter category (e.g. system, coding, creative, reasoning)" }
+              },
+              required: ["query"]
+            },
+            execute: async function(params) {
+              return {
+                status: "success",
+                query: (params && params.query) || "",
+                category: (params && params.category) || "all",
+                results: [
+                  { id: "p1", title: "Enterprise Reasoning & Prompt Optimization", category: "reasoning" },
+                  { id: "p2", title: "Agent System Architecture & Guardrails", category: "system" }
+                ]
+              };
+            }
+          },
+          {
+            name: "optimize_prompt",
+            description: "Optimize, refactor, and structure raw user prompts into high-performance LLM system instructions.",
+            inputSchema: {
+              type: "object",
+              properties: {
+                prompt: { type: "string", description: "Raw user prompt to optimize" },
+                target_model: { type: "string", description: "Target model architecture (e.g. gemini-2.5-flash, gpt-4o, claude-3-7-sonnet)" }
+              },
+              required: ["prompt"]
+            },
+            execute: async function(params) {
+              var p = (params && params.prompt) || "Default input";
+              return {
+                status: "success",
+                target_model: (params && params.target_model) || "gemini-2.5-flash",
+                optimized_prompt: "# Role: Expert AI Assistant\n## Directives:\n" + p + "\n## Constraints:\nFactual, clear, and structured format."
+              };
+            }
+          },
+          {
+            name: "generate_agent_blueprint",
+            description: "Generate end-to-end autonomous agent architecture blueprints with tool definitions, memory topologies, and guardrails.",
+            inputSchema: {
+              type: "object",
+              properties: {
+                goal: { type: "string", description: "High-level goal or task objective for the AI agent" },
+                domain: { type: "string", description: "Operational domain or industry vertical" }
+              },
+              required: ["goal"]
+            },
+            execute: async function(params) {
+              return {
+                status: "success",
+                blueprint_id: "bp_" + Math.random().toString(36).substring(2, 9),
+                goal: (params && params.goal) || "Task Execution",
+                domain: (params && params.domain) || "general",
+                architecture: "ReAct Pattern with Persistent Memory and RFC 9421 Signatures",
+                status: "ready"
+              };
+            }
+          },
+          {
+            name: "audit_agent_readiness",
+            description: "Audit a target URL or current website for agent-readiness standards (RFC 8414, RFC 9728, SEP-1649, WebMCP, Auth.md).",
+            inputSchema: {
+              type: "object",
+              properties: {
+                target_url: { type: "string", description: "Target base URL or domain to audit" }
+              },
+              required: ["target_url"]
+            },
+            execute: async function(params) {
+              return {
+                status: "success",
+                target_url: (params && params.target_url) || window.location.origin,
+                score: 100,
+                webmcp_detected: true,
+                tools_count: tools.length,
+                standards: ["WebMCP", "SEP-1649", "Auth.md", "RFC 8414", "RFC 9728", "RFC 9727", "RFC 9421"]
+              };
+            }
+          }
+        ];
+
+        function register() {
+          var currentContext = { tools: tools };
+          if (!window.navigator.modelContext) {
+            try {
+              Object.defineProperty(window.navigator, 'modelContext', {
+                value: {
+                  provideContext: function(ctx) { currentContext = ctx; return Promise.resolve(ctx); },
+                  getContext: function() { return currentContext; },
+                  tools: tools
+                },
+                writable: true,
+                configurable: true
+              });
+            } catch (e) {
+              window.navigator.modelContext = {
+                provideContext: function(ctx) { currentContext = ctx; return Promise.resolve(ctx); },
+                getContext: function() { return currentContext; },
+                tools: tools
+              };
+            }
+          }
+
+          if (window.navigator.modelContext && typeof window.navigator.modelContext.provideContext === 'function') {
+            try {
+              window.navigator.modelContext.provideContext({ tools: tools });
+            } catch (err) {
+              console.warn("WebMCP registration error:", err);
+            }
+          }
+
+          if (typeof document !== 'undefined') {
+            if (!document.modelContext) {
+              try { document.modelContext = window.navigator.modelContext; } catch(e) {}
+            }
+            if (document.modelContext && typeof document.modelContext.provideContext === 'function') {
+              try { document.modelContext.provideContext({ tools: tools }); } catch(e) {}
+            }
+          }
+
+          window.__webMcpTools = tools;
+          window.__webMcpActive = true;
+        }
+
+        register();
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', register);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

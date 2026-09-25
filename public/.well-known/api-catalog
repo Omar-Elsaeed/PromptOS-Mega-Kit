@@ -1,0 +1,290 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/openapi.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/docs/api",
+          "type": "text/html"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "PromptOS MegaKit Core AI API"
+    },
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/gemini/generate",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/openapi.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/docs/api",
+          "type": "text/html"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "PromptOS Gemini Generation Endpoint"
+    },
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/dns-query",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/openapi.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/dns-aid/SKILL.md",
+          "type": "text/markdown"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "RFC 8484 DNS-over-HTTPS (DoH) Agent Resolver"
+    },
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/http-message-signatures-directory",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/http-message-signatures-directory",
+          "type": "application/http-message-signatures-directory+json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/web-bot-auth/SKILL.md",
+          "type": "text/markdown"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "Web Bot Auth JWKS Directory (RFC 9421)"
+    },
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/oauth/token",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/oauth-authorization-server",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/oauth-discovery/SKILL.md",
+          "type": "text/markdown"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "OAuth 2.0 / OIDC Token Endpoint (RFC 8414)"
+    },
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/oauth-protected-resource",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/oauth-protected-resource",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/oauth-protected-resource/SKILL.md",
+          "type": "text/markdown"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "OAuth 2.0 Protected Resource Metadata (RFC 9728)"
+    },
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/auth.md",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/oauth-authorization-server",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/auth.md",
+          "type": "text/markdown"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "Agent Registration & Authentication Protocol (auth.md)"
+    },
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/oauth/agent/register",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/openapi.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/auth-md/SKILL.md",
+          "type": "text/markdown"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "Autonomous Agent Dynamic Registration Endpoint"
+    },
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/mcp/server-card.json",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/mcp/server-card.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/mcp-server-card/SKILL.md",
+          "type": "text/markdown"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "Model Context Protocol Server Card (SEP-1649 / SEP-2127)"
+    },
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/mcp",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/mcp/server-card.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/mcp-server-card/SKILL.md",
+          "type": "text/markdown"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "Model Context Protocol Streamable HTTP Transport Endpoint"
+    },
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/index.json",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/index.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/agent-skills/SKILL.md",
+          "type": "text/markdown"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "Agent Skills Discovery Index (Agent Skills RFC v0.2.0)"
+    },
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/webmcp/SKILL.md",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/index.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/webmcp/SKILL.md",
+          "type": "text/markdown"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "Web Model Context Protocol (WebMCP Browser Tools)"
+    },
+    {
+      "anchor": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/ai-catalog.json",
+      "service-desc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/ai-catalog.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/ard/SKILL.md",
+          "type": "text/markdown"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/health",
+          "type": "application/json"
+        }
+      ],
+      "title": "Agentic Resource Discovery Manifest (ai-catalog.json)"
+    }
+  ]
+}

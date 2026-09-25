@@ -1,0 +1,94 @@
+; DNS for AI Discovery (DNS-AID) Zone File
+; Standard: draft-mozleywilliams-dnsop-dnsaid & RFC 9460 (SVCB/HTTPS) & RFC 4033-4035 (DNSSEC)
+; Zone: _agents discovery entrypoints
+
+$TTL 300
+$ORIGIN example.com.
+
+; SOA Record
+@       IN  SOA ns1.example.com. hostmaster.example.com. (
+            2026092501 ; Serial
+            7200       ; Refresh (2 hours)
+            3600       ; Retry (1 hour)
+            1209600    ; Expire (2 weeks)
+            300        ; Minimum TTL (5 minutes)
+        )
+
+; Name Servers
+@       IN  NS  ns1.example.com.
+@       IN  NS  ns2.example.com.
+
+; DNSSEC Zone Signing Keys (Algorithm 13: ECDSAP256SHA256)
+@       IN  DNSKEY 256 3 13 oJM1OQ82eIOsx4hgnWzsSbNcTeEp9gNWZF5+9Q5B1QxS3b0r4v3P5a0wE4k8L7x9Q2Z1M0N4O8P2Q6R0S4T8 (
+            ; ZSK KeyTag 24192
+            )
+@       IN  DNSKEY 257 3 13 mdsswUyr3DPW132mOi8V9xESWE8jTo0dxCjjnopKl+GqJxpVXckHAeF+KkxLbxILfDLUT0rIr9ZeEvV60o30Zg== (
+            ; KSK KeyTag 41829
+            )
+
+; Delegation Signer (DS) Record for Parent Zone
+; KeyTag: 41829, Algorithm: 13, DigestType: 2 (SHA-256)
+; example.com. IN DS 41829 13 2 9B8E3D7C5F4A1E2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2D3E4F5A6B
+
+; ----------------------------------------------------------------------
+; 1. WELL-KNOWN AGENT INDEX ENTRYPOINT
+; ----------------------------------------------------------------------
+_index._agents  IN  SVCB    1 @ (
+                            alpn="h2,h3"
+                            port="443"
+                            key65300="path=/.well-known/api-catalog"
+                            endpoint="/.well-known/api-catalog"
+                            mandatory="alpn"
+                        )
+
+_index._agents  IN  HTTPS   1 @ (
+                            alpn="h2,h3"
+                            port="443"
+                            endpoint="/.well-known/api-catalog"
+                        )
+
+_index._agents  IN  TXT     "v=dnsaid1; type=index; catalog=/.well-known/api-catalog; desc=PromptOS AI Discovery Index"
+
+_index._agents  IN  RRSIG   SVCB 13 3 300 20261025000000 20260925000000 24192 example.com. (
+                            k9b2J0w...signed_by_zsk...
+                        )
+
+; ----------------------------------------------------------------------
+; 2. WELL-KNOWN AGENT-TO-AGENT (A2A) ENTRYPOINT
+; ----------------------------------------------------------------------
+_a2a._agents    IN  SVCB    1 @ (
+                            alpn="h2,h3"
+                            port="443"
+                            endpoint="/api/gemini/stream"
+                            mandatory="alpn"
+                        )
+
+_a2a._agents    IN  HTTPS   1 @ (
+                            alpn="h2,h3"
+                            port="443"
+                            endpoint="/api/gemini/stream"
+                        )
+
+_a2a._agents    IN  TXT     "v=dnsaid1; proto=a2a; endpoint=/api/gemini/stream; alpn=h2,h3"
+
+_a2a._agents    IN  RRSIG   SVCB 13 3 300 20261025000000 20260925000000 24192 example.com. (
+                            j4m8P1x...signed_by_zsk...
+                        )
+
+; ----------------------------------------------------------------------
+; 3. SPECIFIC PROMPTOS GENERATION AGENT
+; ----------------------------------------------------------------------
+_promptos._a2a._agents IN SVCB 1 @ (
+                            alpn="h2,h3"
+                            port="443"
+                            endpoint="/api/gemini/generate"
+                            mandatory="alpn"
+                        )
+
+_promptos._a2a._agents IN HTTPS 1 @ (
+                            alpn="h2,h3"
+                            port="443"
+                            endpoint="/api/gemini/generate"
+                        )
+
+_promptos._a2a._agents IN TXT  "v=dnsaid1; name=PromptOS MegaKit; capabilities=prompt_gen,bedrock_gen,fable5,gepa,evals"

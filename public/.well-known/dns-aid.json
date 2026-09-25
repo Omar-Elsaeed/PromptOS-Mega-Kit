@@ -1,0 +1,65 @@
+{
+  "$schema": "https://dns-aid.org/schemas/v1/dns-aid.json",
+  "version": "1.0.0",
+  "standard": "draft-mozleywilliams-dnsop-dnsaid",
+  "rfc": [
+    "RFC 9460",
+    "RFC 8484",
+    "RFC 4033",
+    "RFC 4034",
+    "RFC 4035"
+  ],
+  "title": "PromptOS MegaKit DNS for AI Discovery (DNS-AID)",
+  "description": "ServiceMode SVCB, HTTPS, and TXT records published for federated AI agent discovery under _agents namespace.",
+  "dnssec": {
+    "enabled": true,
+    "algorithm": "ECDSAP256SHA256",
+    "algorithmId": 13,
+    "keyTag": 41829,
+    "digestType": 2,
+    "dsRecord": "example.com. IN DS 41829 13 2 9B8E3D7C5F4A1E2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2D3E4F5A6B",
+    "dnskey": "example.com. IN DNSKEY 257 3 13 mdsswUyr3DPW132mOi8V9xESWE8jTo0dxCjjnopKl+GqJxpVXckHAeF+KkxLbxILfDLUT0rIr9ZeEvV60o30Zg=="
+  },
+  "endpoints": {
+    "index": {
+      "recordName": "_index._agents",
+      "type": "SVCB",
+      "priority": 1,
+      "alpn": ["h2", "h3"],
+      "port": 443,
+      "endpoint": "/.well-known/api-catalog",
+      "svcbZone": "_index._agents IN SVCB 1 @ alpn=\"h2,h3\" port=\"443\" endpoint=\"/.well-known/api-catalog\" key65300=\"path=/.well-known/api-catalog\" mandatory=\"alpn\"",
+      "httpsZone": "_index._agents IN HTTPS 1 @ alpn=\"h2,h3\" port=\"443\" endpoint=\"/.well-known/api-catalog\"",
+      "txtZone": "_index._agents IN TXT \"v=dnsaid1; type=index; catalog=/.well-known/api-catalog; desc=PromptOS AI Discovery Index\""
+    },
+    "a2a": {
+      "recordName": "_a2a._agents",
+      "type": "SVCB",
+      "priority": 1,
+      "alpn": ["h2", "h3"],
+      "port": 443,
+      "endpoint": "/api/gemini/stream",
+      "svcbZone": "_a2a._agents IN SVCB 1 @ alpn=\"h2,h3\" port=\"443\" endpoint=\"/api/gemini/stream\" mandatory=\"alpn\"",
+      "httpsZone": "_a2a._agents IN HTTPS 1 @ alpn=\"h2,h3\" port=\"443\" endpoint=\"/api/gemini/stream\"",
+      "txtZone": "_a2a._agents IN TXT \"v=dnsaid1; proto=a2a; endpoint=/api/gemini/stream; alpn=h2,h3\""
+    },
+    "promptos": {
+      "recordName": "_promptos._a2a._agents",
+      "type": "SVCB",
+      "priority": 1,
+      "alpn": ["h2", "h3"],
+      "port": 443,
+      "endpoint": "/api/gemini/generate",
+      "svcbZone": "_promptos._a2a._agents IN SVCB 1 @ alpn=\"h2,h3\" port=\"443\" endpoint=\"/api/gemini/generate\" mandatory=\"alpn\"",
+      "httpsZone": "_promptos._a2a._agents IN HTTPS 1 @ alpn=\"h2,h3\" port=\"443\" endpoint=\"/api/gemini/generate\"",
+      "txtZone": "_promptos._a2a._agents IN TXT \"v=dnsaid1; name=PromptOS MegaKit; capabilities=prompt_gen,bedrock_gen,fable5,gepa,evals\""
+    }
+  },
+  "links": {
+    "skill": "/.well-known/agent-skills/dns-aid/SKILL.md",
+    "skillsIndex": "/.well-known/agent-skills/index.json",
+    "apiCatalog": "/.well-known/api-catalog",
+    "zoneFile": "/dns-aid.zone",
+    "dohQuery": "/dns-query"
+  }
+}

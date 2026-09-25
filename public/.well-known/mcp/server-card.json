@@ -1,0 +1,85 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schemas/server-card/v1.0",
+  "protocolVersion": "2024-11-05",
+  "serverInfo": {
+    "name": "promptos-megakit",
+    "title": "PromptOS MegaKit MCP Server",
+    "version": "1.0.0",
+    "description": "Model Context Protocol server for PromptOS MegaKit providing prompt optimization, agent blueprint generation, and agent-readiness auditing."
+  },
+  "transport": {
+    "type": "streamable-http",
+    "endpoint": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/mcp"
+  },
+  "capabilities": {
+    "tools": {
+      "listChanged": false
+    },
+    "prompts": {
+      "listChanged": false
+    },
+    "resources": {
+      "subscribe": false,
+      "listChanged": false
+    },
+    "logging": {}
+  },
+  "tools": [
+    {
+      "name": "optimize_prompt",
+      "description": "Refactor, optimize, and structure prompts for high-performance LLM output and reasoning models.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "The raw prompt to optimize"
+          },
+          "target_model": {
+            "type": "string",
+            "description": "Target model architecture (e.g. gemini-2.5-flash, gpt-4o)"
+          }
+        },
+        "required": [
+          "prompt"
+        ]
+      }
+    },
+    {
+      "name": "generate_blueprint",
+      "description": "Generate end-to-end autonomous agent architecture blueprints with tool definitions, memory topologies, and guardrails.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "goal": {
+            "type": "string",
+            "description": "High level objective for the autonomous agent"
+          },
+          "domain": {
+            "type": "string",
+            "description": "Operating domain or vertical"
+          }
+        },
+        "required": [
+          "goal"
+        ]
+      }
+    },
+    {
+      "name": "audit_agent_readiness",
+      "description": "Scan and audit an endpoint or website for RFC 8414, RFC 9728, RFC 9727, Auth.md, and SEP-1649 agent readiness.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_url": {
+            "type": "string",
+            "description": "Target base URL to scan"
+          }
+        },
+        "required": [
+          "target_url"
+        ]
+      }
+    }
+  ]
+}

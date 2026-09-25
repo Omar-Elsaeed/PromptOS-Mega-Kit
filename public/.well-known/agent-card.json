@@ -1,0 +1,23 @@
+{
+  "$schema": "https://a2a-protocol.org/schemas/agent-card/v1.0.json",
+  "name": "promptos-megakit",
+  "displayName": "PromptOS MegaKit Autonomous Agent",
+  "version": "1.0.0",
+  "description": "Autonomous AI Agent for prompt engineering, agent architecture blueprint synthesis, and agent-readiness auditing.",
+  "endpoint": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/mcp",
+  "capabilities": {
+    "streaming": true,
+    "tools": true,
+    "prompts": true,
+    "resources": true
+  },
+  "protocols": [
+    "A2A-1.0",
+    "MCP-2024-11-05"
+  ],
+  "skills": [
+    "prompt-optimization",
+    "blueprint-generation",
+    "agent-readiness-audit"
+  ]
+}

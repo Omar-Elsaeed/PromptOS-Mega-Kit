@@ -1,0 +1,72 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ards-project/ard-spec/main/spec/schemas/ai-catalog.schema.json",
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "PromptOS MegaKit",
+    "identifier": "urn:air:ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app:host:root",
+    "documentationUrl": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/docs",
+    "logoUrl": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/favicon.svg"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app:mcp:server-card",
+      "id": "urn:air:ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app:mcp:server-card",
+      "displayName": "PromptOS MegaKit Model Context Protocol (MCP) Server",
+      "type": "application/mcp-server-card+json",
+      "url": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/mcp/server-card.json",
+      "representativeQueries": [
+        "optimize system prompt for reasoning models and chain of thought",
+        "generate autonomous agent blueprints with memory topologies and guardrails",
+        "audit endpoint for agent readiness, oauth discovery, and auth.md compliance"
+      ]
+    },
+    {
+      "identifier": "urn:air:ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app:a2a:promptos-agent",
+      "id": "urn:air:ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app:a2a:promptos-agent",
+      "displayName": "PromptOS MegaKit A2A Autonomous Agent Card",
+      "type": "application/a2a-agent-card+json",
+      "url": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-card.json",
+      "representativeQueries": [
+        "delegate prompt engineering and system instruction optimization",
+        "request multi-agent architecture synthesis and tool topology",
+        "collaborate with autonomous prompt engineering agent"
+      ]
+    },
+    {
+      "identifier": "urn:air:ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app:openapi:promptos-api",
+      "id": "urn:air:ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app:openapi:promptos-api",
+      "displayName": "PromptOS MegaKit OpenAPI 3.0 API Specification",
+      "type": "application/vnd.oai.openapi+json;version=3.0",
+      "url": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/openapi.json",
+      "representativeQueries": [
+        "access prompt engineering APIs and template catalog",
+        "validate RFC 9421 HTTP message signatures and bot auth",
+        "fetch structured prompt schemas and agent blueprints"
+      ]
+    },
+    {
+      "identifier": "urn:air:ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app:skills:discovery-index",
+      "id": "urn:air:ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app:skills:discovery-index",
+      "displayName": "PromptOS MegaKit Agent Skills Discovery Index (RFC v0.2.0)",
+      "type": "application/json",
+      "url": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/index.json",
+      "representativeQueries": [
+        "discover published agent skills and procedural instructions",
+        "verify SHA-256 integrity digests of agent capabilities",
+        "load procedural agent instructions for WebMCP and OAuth discovery"
+      ]
+    },
+    {
+      "identifier": "urn:air:ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app:webmcp:browser-tools",
+      "id": "urn:air:ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app:webmcp:browser-tools",
+      "displayName": "PromptOS MegaKit WebMCP In-Browser Agent Tools",
+      "type": "application/json",
+      "url": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/webmcp/SKILL.md",
+      "representativeQueries": [
+        "call in-browser WebMCP tools via navigator modelContext",
+        "search prompt templates directly in client browser DOM",
+        "execute prompt optimizer directly within client web session"
+      ]
+    }
+  ]
+}

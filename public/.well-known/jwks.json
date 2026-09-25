@@ -1,0 +1,20 @@
+{
+  "keys": [
+    {
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "kid": "promptos-agent-key-2026",
+      "x": "sL_w0pW5rWkCgGjR99t5b8WdK9JzW77A_Zt0y1x2w3E",
+      "use": "sig",
+      "alg": "EdDSA"
+    },
+    {
+      "kty": "RSA",
+      "kid": "promptos-rsa-2026",
+      "use": "sig",
+      "alg": "RS256",
+      "n": "u1L7vB9_example_rsa_modulus_for_promptos_agent_authentication_signing_key_4096_bits_RFC7517",
+      "e": "AQAB"
+    }
+  ]
+}

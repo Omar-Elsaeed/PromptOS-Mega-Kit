@@ -1,0 +1,144 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PromptOS MegaKit API",
+    "version": "1.0.0",
+    "description": "API services for PromptOS MegaKit interactive AI Prompt Engineering Studio, prompt library search, and Gemini generation."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Current Server"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health check endpoint",
+        "description": "Returns service health and Gemini configuration status.",
+        "responses": {
+          "200": {
+            "description": "Service is operational",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "hasGeminiKey": { "type": "boolean", "example": true },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gemini/generate": {
+      "post": {
+        "summary": "Generate AI content with Gemini",
+        "description": "Sends prompt and system instructions to Gemini server-side model.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["prompt"],
+                "properties": {
+                  "prompt": { "type": "string", "example": "Design a 9-step mediation prompt for customer escalation." },
+                  "systemInstruction": { "type": "string", "example": "You are an expert prompt engineer." },
+                  "model": { "type": "string", "default": "gemini-3.8-flash" },
+                  "temperature": { "type": "number", "default": 0.7 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated content response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": { "type": "string" },
+                    "model": { "type": "string" },
+                    "fallback": { "type": "boolean" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gemini/stream": {
+      "post": {
+        "summary": "Stream AI generation with Server-Sent Events",
+        "description": "Streams chunked tokens from Gemini model in real-time.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["prompt"],
+                "properties": {
+                  "prompt": { "type": "string" },
+                  "systemInstruction": { "type": "string" },
+                  "model": { "type": "string", "default": "gemini-3.8-flash" },
+                  "temperature": { "type": "number", "default": 0.7 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SSE Event stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.well-known/api-catalog": {
+      "get": {
+        "summary": "API Catalog (RFC 9727)",
+        "description": "Lists available APIs and discovery links for AI agents.",
+        "responses": {
+          "200": {
+            "description": "API Catalog details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/docs/api": {
+      "get": {
+        "summary": "API Documentation",
+        "description": "Human and agent readable service documentation.",
+        "responses": {
+          "200": {
+            "description": "Documentation page or data"
+          }
+        }
+      }
+    }
+  }
+}
