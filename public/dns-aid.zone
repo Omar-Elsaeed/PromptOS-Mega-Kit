@@ -57,10 +57,10 @@ _index._agents  IN  RRSIG   SVCB 13 3 300 20261025000000 20260925000000 24192 ex
 ; 2. WELL-KNOWN AGENT-TO-AGENT (A2A) ENTRYPOINT
 ; ----------------------------------------------------------------------
 _a2a._agents    IN  SVCB    1 @ (
-                            alpn="h2,h3"
+                            alpn="a2a,h2,h3"
                             port="443"
                             endpoint="/api/gemini/stream"
-                            mandatory="alpn"
+                            mandatory="alpn,port"
                         )
 
 _a2a._agents    IN  HTTPS   1 @ (
@@ -69,20 +69,43 @@ _a2a._agents    IN  HTTPS   1 @ (
                             endpoint="/api/gemini/stream"
                         )
 
-_a2a._agents    IN  TXT     "v=dnsaid1; proto=a2a; endpoint=/api/gemini/stream; alpn=h2,h3"
+_a2a._agents    IN  TXT     "v=dnsaid1; proto=a2a; endpoint=/api/gemini/stream; alpn=a2a,h2,h3"
 
 _a2a._agents    IN  RRSIG   SVCB 13 3 300 20261025000000 20260925000000 24192 example.com. (
                             j4m8P1x...signed_by_zsk...
                         )
 
 ; ----------------------------------------------------------------------
-; 3. SPECIFIC PROMPTOS GENERATION AGENT
+; 3. WELL-KNOWN MODEL CONTEXT PROTOCOL (MCP) ENTRYPOINT
+; ----------------------------------------------------------------------
+_mcp._agents    IN  SVCB    1 @ (
+                            alpn="h2,h3"
+                            port="443"
+                            endpoint="/.well-known/mcp.json"
+                            key65300="path=/.well-known/mcp.json"
+                            mandatory="alpn,port"
+                        )
+
+_mcp._agents    IN  HTTPS   1 @ (
+                            alpn="h2,h3"
+                            port="443"
+                            endpoint="/.well-known/mcp.json"
+                        )
+
+_mcp._agents    IN  TXT     "v=dnsaid1; proto=mcp; card=/.well-known/mcp/server-card.json; endpoint=/.well-known/mcp.json"
+
+_mcp._agents    IN  RRSIG   SVCB 13 3 300 20261025000000 20260925000000 24192 example.com. (
+                            m7k3Q9w...signed_by_zsk...
+                        )
+
+; ----------------------------------------------------------------------
+; 4. SPECIFIC PROMPTOS GENERATION AGENT
 ; ----------------------------------------------------------------------
 _promptos._a2a._agents IN SVCB 1 @ (
                             alpn="h2,h3"
                             port="443"
                             endpoint="/api/gemini/generate"
-                            mandatory="alpn"
+                            mandatory="alpn,port"
                         )
 
 _promptos._a2a._agents IN HTTPS 1 @ (
@@ -92,3 +115,6 @@ _promptos._a2a._agents IN HTTPS 1 @ (
                         )
 
 _promptos._a2a._agents IN TXT  "v=dnsaid1; name=PromptOS MegaKit; capabilities=prompt_gen,bedrock_gen,fable5,gepa,evals"
+_promptos._a2a._agents IN RRSIG SVCB 13 3 300 20261025000000 20260925000000 24192 example.com. (
+                            p2l9W5v...signed_by_zsk...
+                        )

@@ -1,6 +1,7 @@
 {
   "$schema": "https://dns-aid.org/schemas/v1/dns-aid.json",
   "version": "1.0.0",
+  "domain": "ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
   "standard": "draft-mozleywilliams-dnsop-dnsaid",
   "rfc": [
     "RFC 9460",
@@ -9,8 +10,9 @@
     "RFC 4034",
     "RFC 4035"
   ],
+  "lastUpdated": "2026-09-26",
   "title": "PromptOS MegaKit DNS for AI Discovery (DNS-AID)",
-  "description": "ServiceMode SVCB, HTTPS, and TXT records published for federated AI agent discovery under _agents namespace.",
+  "description": "DNS-AID ServiceMode SVCB/HTTPS discovery entrypoint records under _agents namespace signed with DNSSEC.",
   "dnssec": {
     "enabled": true,
     "algorithm": "ECDSAP256SHA256",
@@ -32,9 +34,9 @@
         "alpn": "h2,h3",
         "port": 443,
         "endpoint": "/.well-known/api-catalog",
-        "mandatory": "alpn"
+        "mandatory": "alpn,port"
       },
-      "zone": "_index._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN SVCB 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=\"443\" endpoint=\"/.well-known/api-catalog\" key65300=\"path=/.well-known/api-catalog\" mandatory=\"alpn\""
+      "zone": "_index._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN SVCB 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/.well-known/api-catalog\" key65300=\"path=/.well-known/api-catalog\" mandatory=alpn,port"
     },
     {
       "name": "_index._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
@@ -47,7 +49,7 @@
         "port": 443,
         "endpoint": "/.well-known/api-catalog"
       },
-      "zone": "_index._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN HTTPS 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=\"443\" endpoint=\"/.well-known/api-catalog\""
+      "zone": "_index._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN HTTPS 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/.well-known/api-catalog\""
     },
     {
       "name": "_index._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
@@ -63,12 +65,12 @@
       "priority": 1,
       "target": "ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app.",
       "params": {
-        "alpn": "h2,h3",
+        "alpn": "a2a,h2,h3",
         "port": 443,
         "endpoint": "/api/gemini/stream",
-        "mandatory": "alpn"
+        "mandatory": "alpn,port"
       },
-      "zone": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN SVCB 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=\"443\" endpoint=\"/api/gemini/stream\" mandatory=\"alpn\""
+      "zone": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN SVCB 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"a2a,h2,h3\" port=443 endpoint=\"/api/gemini/stream\" mandatory=alpn,port"
     },
     {
       "name": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
@@ -81,72 +83,165 @@
         "port": 443,
         "endpoint": "/api/gemini/stream"
       },
-      "zone": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN HTTPS 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=\"443\" endpoint=\"/api/gemini/stream\""
+      "zone": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN HTTPS 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/api/gemini/stream\""
     },
     {
       "name": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
       "fqdn": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app.",
       "type": "TXT",
-      "value": "v=dnsaid1; proto=a2a; endpoint=https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/gemini/stream; alpn=h2,h3",
-      "zone": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN TXT \"v=dnsaid1; proto=a2a; endpoint=https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/gemini/stream; alpn=h2,h3\""
+      "value": "v=dnsaid1; proto=a2a; endpoint=https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/gemini/stream; alpn=a2a,h2,h3",
+      "zone": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN TXT \"v=dnsaid1; proto=a2a; endpoint=https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/gemini/stream; alpn=a2a,h2,h3\""
+    },
+    {
+      "name": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
+      "fqdn": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app.",
+      "type": "SVCB",
+      "priority": 1,
+      "target": "ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app.",
+      "params": {
+        "alpn": "h2,h3",
+        "port": 443,
+        "endpoint": "/.well-known/mcp.json",
+        "mandatory": "alpn,port"
+      },
+      "zone": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN SVCB 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/.well-known/mcp.json\" key65300=\"path=/.well-known/mcp.json\" mandatory=alpn,port"
+    },
+    {
+      "name": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
+      "fqdn": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app.",
+      "type": "HTTPS",
+      "priority": 1,
+      "target": "ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app.",
+      "params": {
+        "alpn": "h2,h3",
+        "port": 443,
+        "endpoint": "/.well-known/mcp.json"
+      },
+      "zone": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN HTTPS 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/.well-known/mcp.json\""
+    },
+    {
+      "name": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
+      "fqdn": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app.",
+      "type": "TXT",
+      "value": "v=dnsaid1; proto=mcp; card=https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/mcp/server-card.json; endpoint=https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/mcp.json",
+      "zone": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN TXT \"v=dnsaid1; proto=mcp; card=https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/mcp/server-card.json; endpoint=https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/mcp.json\""
+    },
+    {
+      "name": "_promptos._a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
+      "fqdn": "_promptos._a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app.",
+      "type": "SVCB",
+      "priority": 1,
+      "target": "ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app.",
+      "params": {
+        "alpn": "h2,h3",
+        "port": 443,
+        "endpoint": "/api/gemini/generate",
+        "mandatory": "alpn,port"
+      },
+      "zone": "_promptos._a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN SVCB 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/api/gemini/generate\" mandatory=alpn,port"
     }
   ],
   "entrypoints": [
     {
       "entrypoint": "index",
       "domain": "_index._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
-      "record": "1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=\"443\" endpoint=\"/.well-known/api-catalog\" key65300=\"path=/.well-known/api-catalog\" mandatory=\"alpn\"",
-      "protocols": ["h2", "h3"],
+      "record": "1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/.well-known/api-catalog\" key65300=\"path=/.well-known/api-catalog\" mandatory=\"alpn,port\"",
+      "protocols": [
+        "h2",
+        "h3"
+      ],
       "endpoint": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/api-catalog"
     },
     {
       "entrypoint": "a2a",
       "domain": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
-      "record": "1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=\"443\" endpoint=\"/api/gemini/stream\" mandatory=\"alpn\"",
-      "protocols": ["h2", "h3"],
+      "record": "1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"a2a,h2,h3\" port=443 endpoint=\"/api/gemini/stream\" mandatory=\"alpn,port\"",
+      "protocols": [
+        "a2a",
+        "h2",
+        "h3"
+      ],
       "endpoint": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/gemini/stream"
+    },
+    {
+      "entrypoint": "mcp",
+      "domain": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
+      "record": "1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/.well-known/mcp.json\" key65300=\"path=/.well-known/mcp.json\" mandatory=\"alpn,port\"",
+      "protocols": [
+        "h2",
+        "h3"
+      ],
+      "endpoint": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/mcp.json"
     }
   ],
   "endpoints": {
     "index": {
-      "recordName": "_index._agents",
+      "recordName": "_index._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
       "type": "SVCB",
       "priority": 1,
-      "alpn": ["h2", "h3"],
+      "target": "ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
+      "alpn": [
+        "h2",
+        "h3"
+      ],
       "port": 443,
       "endpoint": "/.well-known/api-catalog",
-      "svcbZone": "_index._agents IN SVCB 1 @ alpn=\"h2,h3\" port=\"443\" endpoint=\"/.well-known/api-catalog\" key65300=\"path=/.well-known/api-catalog\" mandatory=\"alpn\"",
-      "httpsZone": "_index._agents IN HTTPS 1 @ alpn=\"h2,h3\" port=\"443\" endpoint=\"/.well-known/api-catalog\"",
-      "txtZone": "_index._agents IN TXT \"v=dnsaid1; type=index; catalog=/.well-known/api-catalog; desc=PromptOS AI Discovery Index\""
+      "svcbZone": "_index._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN SVCB 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/.well-known/api-catalog\" key65300=\"path=/.well-known/api-catalog\" mandatory=alpn,port",
+      "httpsZone": "_index._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN HTTPS 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/.well-known/api-catalog\"",
+      "txtZone": "_index._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN TXT \"v=dnsaid1; type=index; catalog=https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/api-catalog; desc=PromptOS AI Discovery Index\""
     },
     "a2a": {
-      "recordName": "_a2a._agents",
+      "recordName": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
       "type": "SVCB",
       "priority": 1,
-      "alpn": ["h2", "h3"],
+      "target": "ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
+      "alpn": [
+        "a2a",
+        "h2",
+        "h3"
+      ],
       "port": 443,
       "endpoint": "/api/gemini/stream",
-      "svcbZone": "_a2a._agents IN SVCB 1 @ alpn=\"h2,h3\" port=\"443\" endpoint=\"/api/gemini/stream\" mandatory=\"alpn\"",
-      "httpsZone": "_a2a._agents IN HTTPS 1 @ alpn=\"h2,h3\" port=\"443\" endpoint=\"/api/gemini/stream\"",
-      "txtZone": "_a2a._agents IN TXT \"v=dnsaid1; proto=a2a; endpoint=/api/gemini/stream; alpn=h2,h3\""
+      "svcbZone": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN SVCB 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"a2a,h2,h3\" port=443 endpoint=\"/api/gemini/stream\" mandatory=alpn,port",
+      "httpsZone": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN HTTPS 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/api/gemini/stream\"",
+      "txtZone": "_a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN TXT \"v=dnsaid1; proto=a2a; endpoint=https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/api/gemini/stream; alpn=a2a,h2,h3\""
     },
-    "promptos": {
-      "recordName": "_promptos._a2a._agents",
+    "mcp": {
+      "recordName": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
       "type": "SVCB",
       "priority": 1,
-      "alpn": ["h2", "h3"],
+      "target": "ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
+      "alpn": [
+        "h2",
+        "h3"
+      ],
+      "port": 443,
+      "endpoint": "/.well-known/mcp.json",
+      "svcbZone": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN SVCB 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/.well-known/mcp.json\" key65300=\"path=/.well-known/mcp.json\" mandatory=alpn,port",
+      "httpsZone": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN HTTPS 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/.well-known/mcp.json\"",
+      "txtZone": "_mcp._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN TXT \"v=dnsaid1; proto=mcp; card=https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/mcp/server-card.json; endpoint=https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/mcp.json\""
+    },
+    "promptos": {
+      "recordName": "_promptos._a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
+      "type": "SVCB",
+      "priority": 1,
+      "target": "ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app",
+      "alpn": [
+        "h2",
+        "h3"
+      ],
       "port": 443,
       "endpoint": "/api/gemini/generate",
-      "svcbZone": "_promptos._a2a._agents IN SVCB 1 @ alpn=\"h2,h3\" port=\"443\" endpoint=\"/api/gemini/generate\" mandatory=\"alpn\"",
-      "httpsZone": "_promptos._a2a._agents IN HTTPS 1 @ alpn=\"h2,h3\" port=\"443\" endpoint=\"/api/gemini/generate\"",
-      "txtZone": "_promptos._a2a._agents IN TXT \"v=dnsaid1; name=PromptOS MegaKit; capabilities=prompt_gen,bedrock_gen,fable5,gepa,evals\""
+      "svcbZone": "_promptos._a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN SVCB 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/api/gemini/generate\" mandatory=alpn,port",
+      "httpsZone": "_promptos._a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN HTTPS 1 ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. alpn=\"h2,h3\" port=443 endpoint=\"/api/gemini/generate\"",
+      "txtZone": "_promptos._a2a._agents.ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app. 300 IN TXT \"v=dnsaid1; name=PromptOS MegaKit; capabilities=prompt_gen,bedrock_gen,fable5,gepa,evals\""
     }
   },
   "links": {
-    "skill": "/.well-known/agent-skills/dns-aid/SKILL.md",
-    "skillsIndex": "/.well-known/agent-skills/index.json",
-    "apiCatalog": "/.well-known/api-catalog",
-    "zoneFile": "/dns-aid.zone",
-    "dohQuery": "/dns-query"
+    "skill": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/dns-aid/SKILL.md",
+    "skillsIndex": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/agent-skills/index.json",
+    "apiCatalog": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/.well-known/api-catalog",
+    "zoneFile": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/dns-aid.zone",
+    "dohQuery": "https://ais-pre-mub4stqcpyqz5vshkt77y6-191782561593.europe-west2.run.app/dns-query"
   }
 }

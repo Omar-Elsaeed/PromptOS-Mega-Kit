@@ -80,6 +80,52 @@ async function startServer() {
     next();
   });
 
+  // Intercept GET/HEAD requests requesting text/markdown (Markdown for Agents per llmstxt.org and Cloudflare)
+  app.use((req, res, next) => {
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      return next();
+    }
+
+    const accept = (req.headers["accept"] as string) || "";
+    const wantsMarkdown =
+      req.query.format === "markdown" ||
+      req.query.markdown === "1" ||
+      req.query.markdown === "true" ||
+      accept.includes("text/markdown");
+
+    // Only apply to HTML routes / page navigation, not static code/data assets
+    const p = req.path;
+    const isAsset = /\.(js|css|svg|png|jpg|jpeg|webp|gif|ico|woff|woff2|ttf|wasm|json|xml|zone|txt)$/i.test(p);
+
+    if (wantsMarkdown && !isAsset) {
+      let targetPath = p;
+      if (p.includes("__cookie_check.html") && req.query.return_url) {
+        try {
+          const u = new URL(req.query.return_url as string);
+          targetPath = u.pathname;
+        } catch {}
+      }
+
+      const origin = getRequestOrigin(req);
+      const markdown = getMarkdownForPath(targetPath, origin);
+      const tokens = estimateTokens(markdown);
+
+      res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+      res.setHeader("x-markdown-tokens", tokens.toString());
+      res.setHeader("Vary", "Accept");
+      res.setHeader("Content-Signal", "ai-train=yes, search=yes, ai-input=yes");
+      res.setHeader("Link", AGENT_LINK_HEADERS);
+      res.setHeader("Access-Control-Allow-Origin", "*");
+
+      if (req.method === "HEAD") {
+        return res.status(200).end();
+      }
+      return res.status(200).send(markdown);
+    }
+
+    next();
+  });
+
   // Shared Gemini instance initialized lazily
   let aiClient: GoogleGenAI | null = null;
   function getGeminiClient(): GoogleGenAI | null {
@@ -782,9 +828,9 @@ ${SITEMAP_ROUTES.map((route) => {
             "alpn": "h2,h3",
             "port": 443,
             "endpoint": "/.well-known/api-catalog",
-            "mandatory": "alpn"
+            "mandatory": "alpn,port"
           },
-          "zone": `_index._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port="443" endpoint="/.well-known/api-catalog" key65300="path=/.well-known/api-catalog" mandatory="alpn"`
+          "zone": `_index._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port=443 endpoint="/.well-known/api-catalog" key65300="path=/.well-known/api-catalog" mandatory=alpn,port`
         },
         {
           "name": `_index._agents.${domain}`,
@@ -797,7 +843,7 @@ ${SITEMAP_ROUTES.map((route) => {
             "port": 443,
             "endpoint": "/.well-known/api-catalog"
           },
-          "zone": `_index._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port="443" endpoint="/.well-known/api-catalog"`
+          "zone": `_index._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port=443 endpoint="/.well-known/api-catalog"`
         },
         {
           "name": `_index._agents.${domain}`,
@@ -813,12 +859,12 @@ ${SITEMAP_ROUTES.map((route) => {
           "priority": 1,
           "target": `${domain}.`,
           "params": {
-            "alpn": "h2,h3",
+            "alpn": "a2a,h2,h3",
             "port": 443,
             "endpoint": "/api/gemini/stream",
-            "mandatory": "alpn"
+            "mandatory": "alpn,port"
           },
-          "zone": `_a2a._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port="443" endpoint="/api/gemini/stream" mandatory="alpn"`
+          "zone": `_a2a._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="a2a,h2,h3" port=443 endpoint="/api/gemini/stream" mandatory=alpn,port`
         },
         {
           "name": `_a2a._agents.${domain}`,
@@ -831,14 +877,48 @@ ${SITEMAP_ROUTES.map((route) => {
             "port": 443,
             "endpoint": "/api/gemini/stream"
           },
-          "zone": `_a2a._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port="443" endpoint="/api/gemini/stream"`
+          "zone": `_a2a._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port=443 endpoint="/api/gemini/stream"`
         },
         {
           "name": `_a2a._agents.${domain}`,
           "fqdn": `_a2a._agents.${domain}.`,
           "type": "TXT",
-          "value": `v=dnsaid1; proto=a2a; endpoint=${origin}/api/gemini/stream; alpn=h2,h3`,
-          "zone": `_a2a._agents.${domain}. 300 IN TXT "v=dnsaid1; proto=a2a; endpoint=${origin}/api/gemini/stream; alpn=h2,h3"`
+          "value": `v=dnsaid1; proto=a2a; endpoint=${origin}/api/gemini/stream; alpn=a2a,h2,h3`,
+          "zone": `_a2a._agents.${domain}. 300 IN TXT "v=dnsaid1; proto=a2a; endpoint=${origin}/api/gemini/stream; alpn=a2a,h2,h3"`
+        },
+        {
+          "name": `_mcp._agents.${domain}`,
+          "fqdn": `_mcp._agents.${domain}.`,
+          "type": "SVCB",
+          "priority": 1,
+          "target": `${domain}.`,
+          "params": {
+            "alpn": "h2,h3",
+            "port": 443,
+            "endpoint": "/.well-known/mcp.json",
+            "mandatory": "alpn,port"
+          },
+          "zone": `_mcp._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port=443 endpoint="/.well-known/mcp.json" key65300="path=/.well-known/mcp.json" mandatory=alpn,port`
+        },
+        {
+          "name": `_mcp._agents.${domain}`,
+          "fqdn": `_mcp._agents.${domain}.`,
+          "type": "HTTPS",
+          "priority": 1,
+          "target": `${domain}.`,
+          "params": {
+            "alpn": "h2,h3",
+            "port": 443,
+            "endpoint": "/.well-known/mcp.json"
+          },
+          "zone": `_mcp._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port=443 endpoint="/.well-known/mcp.json"`
+        },
+        {
+          "name": `_mcp._agents.${domain}`,
+          "fqdn": `_mcp._agents.${domain}.`,
+          "type": "TXT",
+          "value": `v=dnsaid1; proto=mcp; card=${origin}/.well-known/mcp/server-card.json; endpoint=${origin}/.well-known/mcp.json`,
+          "zone": `_mcp._agents.${domain}. 300 IN TXT "v=dnsaid1; proto=mcp; card=${origin}/.well-known/mcp/server-card.json; endpoint=${origin}/.well-known/mcp.json"`
         },
         {
           "name": `_promptos._a2a._agents.${domain}`,
@@ -850,25 +930,32 @@ ${SITEMAP_ROUTES.map((route) => {
             "alpn": "h2,h3",
             "port": 443,
             "endpoint": "/api/gemini/generate",
-            "mandatory": "alpn"
+            "mandatory": "alpn,port"
           },
-          "zone": `_promptos._a2a._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port="443" endpoint="/api/gemini/generate" mandatory="alpn"`
+          "zone": `_promptos._a2a._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port=443 endpoint="/api/gemini/generate" mandatory=alpn,port`
         }
       ],
       "entrypoints": [
         {
           "entrypoint": "index",
           "domain": `_index._agents.${domain}`,
-          "record": `1 ${domain}. alpn="h2,h3" port="443" endpoint="/.well-known/api-catalog" key65300="path=/.well-known/api-catalog" mandatory="alpn"`,
+          "record": `1 ${domain}. alpn="h2,h3" port=443 endpoint="/.well-known/api-catalog" key65300="path=/.well-known/api-catalog" mandatory="alpn,port"`,
           "protocols": ["h2", "h3"],
           "endpoint": `${origin}/.well-known/api-catalog`
         },
         {
           "entrypoint": "a2a",
           "domain": `_a2a._agents.${domain}`,
-          "record": `1 ${domain}. alpn="h2,h3" port="443" endpoint="/api/gemini/stream" mandatory="alpn"`,
-          "protocols": ["h2", "h3"],
+          "record": `1 ${domain}. alpn="a2a,h2,h3" port=443 endpoint="/api/gemini/stream" mandatory="alpn,port"`,
+          "protocols": ["a2a", "h2", "h3"],
           "endpoint": `${origin}/api/gemini/stream`
+        },
+        {
+          "entrypoint": "mcp",
+          "domain": `_mcp._agents.${domain}`,
+          "record": `1 ${domain}. alpn="h2,h3" port=443 endpoint="/.well-known/mcp.json" key65300="path=/.well-known/mcp.json" mandatory="alpn,port"`,
+          "protocols": ["h2", "h3"],
+          "endpoint": `${origin}/.well-known/mcp.json`
         }
       ],
       "endpoints": {
@@ -880,8 +967,8 @@ ${SITEMAP_ROUTES.map((route) => {
           "alpn": ["h2", "h3"],
           "port": 443,
           "endpoint": "/.well-known/api-catalog",
-          "svcbZone": `_index._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port="443" endpoint="/.well-known/api-catalog" key65300="path=/.well-known/api-catalog" mandatory="alpn"`,
-          "httpsZone": `_index._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port="443" endpoint="/.well-known/api-catalog"`,
+          "svcbZone": `_index._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port=443 endpoint="/.well-known/api-catalog" key65300="path=/.well-known/api-catalog" mandatory=alpn,port`,
+          "httpsZone": `_index._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port=443 endpoint="/.well-known/api-catalog"`,
           "txtZone": `_index._agents.${domain}. 300 IN TXT "v=dnsaid1; type=index; catalog=${origin}/.well-known/api-catalog; desc=PromptOS AI Discovery Index"`
         },
         "a2a": {
@@ -889,12 +976,24 @@ ${SITEMAP_ROUTES.map((route) => {
           "type": "SVCB",
           "priority": 1,
           "target": domain,
-          "alpn": ["h2", "h3"],
+          "alpn": ["a2a", "h2", "h3"],
           "port": 443,
           "endpoint": "/api/gemini/stream",
-          "svcbZone": `_a2a._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port="443" endpoint="/api/gemini/stream" mandatory="alpn"`,
-          "httpsZone": `_a2a._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port="443" endpoint="/api/gemini/stream"`,
-          "txtZone": `_a2a._agents.${domain}. 300 IN TXT "v=dnsaid1; proto=a2a; endpoint=${origin}/api/gemini/stream; alpn=h2,h3"`
+          "svcbZone": `_a2a._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="a2a,h2,h3" port=443 endpoint="/api/gemini/stream" mandatory=alpn,port`,
+          "httpsZone": `_a2a._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port=443 endpoint="/api/gemini/stream"`,
+          "txtZone": `_a2a._agents.${domain}. 300 IN TXT "v=dnsaid1; proto=a2a; endpoint=${origin}/api/gemini/stream; alpn=a2a,h2,h3"`
+        },
+        "mcp": {
+          "recordName": `_mcp._agents.${domain}`,
+          "type": "SVCB",
+          "priority": 1,
+          "target": domain,
+          "alpn": ["h2", "h3"],
+          "port": 443,
+          "endpoint": "/.well-known/mcp.json",
+          "svcbZone": `_mcp._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port=443 endpoint="/.well-known/mcp.json" key65300="path=/.well-known/mcp.json" mandatory=alpn,port`,
+          "httpsZone": `_mcp._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port=443 endpoint="/.well-known/mcp.json"`,
+          "txtZone": `_mcp._agents.${domain}. 300 IN TXT "v=dnsaid1; proto=mcp; card=${origin}/.well-known/mcp/server-card.json; endpoint=${origin}/.well-known/mcp.json"`
         },
         "promptos": {
           "recordName": `_promptos._a2a._agents.${domain}`,
@@ -904,8 +1003,8 @@ ${SITEMAP_ROUTES.map((route) => {
           "alpn": ["h2", "h3"],
           "port": 443,
           "endpoint": "/api/gemini/generate",
-          "svcbZone": `_promptos._a2a._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port="443" endpoint="/api/gemini/generate" mandatory="alpn"`,
-          "httpsZone": `_promptos._a2a._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port="443" endpoint="/api/gemini/generate"`,
+          "svcbZone": `_promptos._a2a._agents.${domain}. 300 IN SVCB 1 ${domain}. alpn="h2,h3" port=443 endpoint="/api/gemini/generate" mandatory=alpn,port`,
+          "httpsZone": `_promptos._a2a._agents.${domain}. 300 IN HTTPS 1 ${domain}. alpn="h2,h3" port=443 endpoint="/api/gemini/generate"`,
           "txtZone": `_promptos._a2a._agents.${domain}. 300 IN TXT "v=dnsaid1; name=PromptOS MegaKit; capabilities=prompt_gen,bedrock_gen,fable5,gepa,evals"`
         }
       },
@@ -974,27 +1073,45 @@ _index._agents  IN  RRSIG   SVCB 13 3 300 20261025000000 20260925000000 24192 ${
 
 ; 2. Well-Known Agent-to-Agent (A2A) Entrypoint (ServiceMode SVCB Priority 1)
 _a2a._agents    IN  SVCB    1 ${domain}. (
-                            alpn="h2,h3"
+                            alpn="a2a,h2,h3"
                             port="443"
                             endpoint="/api/gemini/stream"
-                            mandatory="alpn"
+                            mandatory="alpn,port"
                         )
 _a2a._agents    IN  HTTPS   1 ${domain}. (
                             alpn="h2,h3"
                             port="443"
                             endpoint="/api/gemini/stream"
                         )
-_a2a._agents    IN  TXT     "v=dnsaid1; proto=a2a; endpoint=${origin}/api/gemini/stream; alpn=h2,h3"
+_a2a._agents    IN  TXT     "v=dnsaid1; proto=a2a; endpoint=${origin}/api/gemini/stream; alpn=a2a,h2,h3"
 _a2a._agents    IN  RRSIG   SVCB 13 3 300 20261025000000 20260925000000 24192 ${domain}. (
                             j4m8P1x...signed_by_zsk...
                         )
 
-; 3. Specific Agent Endpoint (PromptOS MegaKit)
+; 3. Well-Known Model Context Protocol (MCP) Entrypoint (ServiceMode SVCB Priority 1)
+_mcp._agents    IN  SVCB    1 ${domain}. (
+                            alpn="h2,h3"
+                            port="443"
+                            endpoint="/.well-known/mcp.json"
+                            key65300="path=/.well-known/mcp.json"
+                            mandatory="alpn,port"
+                        )
+_mcp._agents    IN  HTTPS   1 ${domain}. (
+                            alpn="h2,h3"
+                            port="443"
+                            endpoint="/.well-known/mcp.json"
+                        )
+_mcp._agents    IN  TXT     "v=dnsaid1; proto=mcp; card=${origin}/.well-known/mcp/server-card.json; endpoint=${origin}/.well-known/mcp.json"
+_mcp._agents    IN  RRSIG   SVCB 13 3 300 20261025000000 20260925000000 24192 ${domain}. (
+                            m7k3Q9w...signed_by_zsk...
+                        )
+
+; 4. Specific Agent Endpoint (PromptOS MegaKit)
 _promptos._a2a._agents IN SVCB 1 ${domain}. (
                             alpn="h2,h3"
                             port="443"
                             endpoint="/api/gemini/generate"
-                            mandatory="alpn"
+                            mandatory="alpn,port"
                         )
 _promptos._a2a._agents IN HTTPS 1 ${domain}. (
                             alpn="h2,h3"
@@ -1002,6 +1119,9 @@ _promptos._a2a._agents IN HTTPS 1 ${domain}. (
                             endpoint="/api/gemini/generate"
                         )
 _promptos._a2a._agents IN TXT  "v=dnsaid1; name=PromptOS MegaKit; capabilities=prompt_gen,bedrock_gen,fable5,gepa,evals"
+_promptos._a2a._agents IN RRSIG SVCB 13 3 300 20261025000000 20260925000000 24192 ${domain}. (
+                            p2l9W5v...signed_by_zsk...
+                        )
 `;
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -1193,6 +1313,8 @@ _promptos._a2a._agents IN TXT  "v=dnsaid1; name=PromptOS MegaKit; capabilities=p
       ],
       bearer_methods_supported: ["header"],
       resource_signing_alg_values_supported: ["RS256", "EdDSA"],
+      dpop_signing_alg_values_supported: ["RS256", "ES256", "EdDSA"],
+      jwks_uri: `${origin}/.well-known/jwks.json`,
       agent_auth: {
         auth_md_uri: `${origin}/auth.md`,
         register_uri: `${origin}/oauth/agent/register`,
@@ -1878,28 +2000,125 @@ _promptos._a2a._agents IN TXT  "v=dnsaid1; name=PromptOS MegaKit; capabilities=p
     const origin = getRequestOrigin(req);
     const domain = origin.replace(/^https?:\/\//, "").split(":")[0];
     
-    // Check if JSON DoH query or request
-    const isJson = req.headers.accept?.includes("application/dns-json") || req.query.type || !Buffer.isBuffer(req.body);
+    // Check if JSON DoH query or binary request
+    const isBinary = req.headers["content-type"] === "application/dns-message" || (Buffer.isBuffer(req.body) && req.body.length > 0);
     const queryName = ((req.query.name as string) || "").toLowerCase();
     const queryType = ((req.query.type as string) || "").toUpperCase();
+    const dnssecOk = req.query.do === "1" || req.query.do === "true";
 
     // Determine target record set
-    const isIndex = queryName.includes("_index") || queryName.includes("index") || !queryName;
-    const isA2A = queryName.includes("_a2a") || queryName.includes("a2a");
-    const isPromptOS = queryName.includes("_promptos");
+    const isMcp = queryName.includes("_mcp") || queryName.includes("mcp");
+    const isA2A = !isMcp && (queryName.includes("_a2a") || queryName.includes("a2a"));
+    const isPromptOS = !isMcp && queryName.includes("_promptos");
+    const isIndex = !isMcp && !isA2A && !isPromptOS;
 
-    const recordTargetName = isPromptOS ? `_promptos._a2a._agents.${domain}.` : isA2A ? `_a2a._agents.${domain}.` : `_index._agents.${domain}.`;
-    const endpointPath = isPromptOS ? "/api/gemini/generate" : isA2A ? "/api/gemini/stream" : "/.well-known/api-catalog";
-    const txtValue = isPromptOS 
+    const recordTargetName = isMcp
+      ? `_mcp._agents.${domain}.`
+      : isPromptOS
+      ? `_promptos._a2a._agents.${domain}.`
+      : isA2A
+      ? `_a2a._agents.${domain}.`
+      : `_index._agents.${domain}.`;
+
+    const endpointPath = isMcp
+      ? "/.well-known/mcp.json"
+      : isPromptOS
+      ? "/api/gemini/generate"
+      : isA2A
+      ? "/api/gemini/stream"
+      : "/.well-known/api-catalog";
+
+    const alpnVal = isA2A ? "a2a,h2,h3" : "h2,h3";
+
+    const svcbData = isMcp
+      ? `1 ${domain}. alpn="h2,h3" port=443 endpoint="/.well-known/mcp.json" key65300="path=/.well-known/mcp.json" mandatory=alpn,port`
+      : isA2A
+      ? `1 ${domain}. alpn="a2a,h2,h3" port=443 endpoint="/api/gemini/stream" mandatory=alpn,port`
+      : isPromptOS
+      ? `1 ${domain}. alpn="h2,h3" port=443 endpoint="/api/gemini/generate" mandatory=alpn,port`
+      : `1 ${domain}. alpn="h2,h3" port=443 endpoint="/.well-known/api-catalog" key65300="path=/.well-known/api-catalog" mandatory=alpn,port`;
+
+    const httpsData = `1 ${domain}. alpn="${alpnVal}" port=443 endpoint="${endpointPath}"`;
+
+    const txtValue = isMcp
+      ? `v=dnsaid1; proto=mcp; card=${origin}/.well-known/mcp/server-card.json; endpoint=${origin}/.well-known/mcp.json`
+      : isPromptOS
       ? "v=dnsaid1; name=PromptOS MegaKit; capabilities=prompt_gen,bedrock_gen,fable5,gepa,evals"
       : isA2A
-      ? `v=dnsaid1; proto=a2a; endpoint=${origin}/api/gemini/stream; alpn=h2,h3`
+      ? `v=dnsaid1; proto=a2a; endpoint=${origin}/api/gemini/stream; alpn=a2a,h2,h3`
       : `v=dnsaid1; type=index; catalog=${origin}/.well-known/api-catalog; desc=PromptOS AI Discovery Index`;
 
     res.setHeader("Access-Control-Allow-Origin", "*");
 
-    if (isJson || (!Buffer.isBuffer(req.body) && !req.query.dns)) {
+    if (!isBinary && !req.query.dns) {
       res.setHeader("Content-Type", "application/dns-json; charset=utf-8");
+
+      const questionType =
+        queryType === "TXT" || queryType === "16"
+          ? 16
+          : queryType === "HTTPS" || queryType === "65"
+          ? 65
+          : queryType === "DNSKEY" || queryType === "48"
+          ? 48
+          : queryType === "DS" || queryType === "43"
+          ? 43
+          : 64; // default SVCB (64)
+
+      const answers: Array<{ name: string; type: number; TTL: number; data: string }> = [];
+
+      if (questionType === 64) {
+        answers.push({
+          name: req.query.name ? (req.query.name as string) : recordTargetName,
+          type: 64,
+          TTL: 300,
+          data: svcbData
+        });
+      } else if (questionType === 65) {
+        answers.push({
+          name: req.query.name ? (req.query.name as string) : recordTargetName,
+          type: 65,
+          TTL: 300,
+          data: httpsData
+        });
+      } else if (questionType === 16) {
+        answers.push({
+          name: req.query.name ? (req.query.name as string) : recordTargetName,
+          type: 16,
+          TTL: 300,
+          data: txtValue
+        });
+      } else if (questionType === 48) {
+        answers.push({
+          name: `${domain}.`,
+          type: 48,
+          TTL: 3600,
+          data: "257 3 13 mdsswUyr3DPW132mOi8V9xESWE8jTo0dxCjjnopKl+GqJxpVXckHAeF+KkxLbxILfDLUT0rIr9ZeEvV60o30Zg=="
+        });
+      } else if (questionType === 43) {
+        answers.push({
+          name: `${domain}.`,
+          type: 43,
+          TTL: 3600,
+          data: "41829 13 2 9B8E3D7C5F4A1E2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2D3E4F5A6B"
+        });
+      } else {
+        // Return all
+        answers.push(
+          { name: recordTargetName, type: 64, TTL: 300, data: svcbData },
+          { name: recordTargetName, type: 65, TTL: 300, data: httpsData },
+          { name: recordTargetName, type: 16, TTL: 300, data: txtValue }
+        );
+      }
+
+      if (dnssecOk) {
+        answers.push({
+          name: req.query.name ? (req.query.name as string) : recordTargetName,
+          type: 46, // RRSIG
+          TTL: 300,
+          data: `SVCB 13 3 300 20261025000000 20260925000000 24192 ${domain}. k9b2J0w...signed_by_zsk...`
+        });
+      }
+
       return res.status(200).json({
         "Status": 0, // NOERROR
         "TC": false,
@@ -1909,30 +2128,11 @@ _promptos._a2a._agents IN TXT  "v=dnsaid1; name=PromptOS MegaKit; capabilities=p
         "CD": false,
         "Question": [
           {
-            "name": recordTargetName,
-            "type": queryType === "TXT" ? 16 : queryType === "HTTPS" ? 65 : 64 // default SVCB (64)
+            "name": req.query.name ? (req.query.name as string) : recordTargetName,
+            "type": questionType
           }
         ],
-        "Answer": [
-          {
-            "name": recordTargetName,
-            "type": 64, // SVCB
-            "TTL": 300,
-            "data": `1 ${domain}. alpn=h2,h3 port=443 endpoint=${endpointPath} key65300=path=${endpointPath} mandatory=alpn`
-          },
-          {
-            "name": recordTargetName,
-            "type": 65, // HTTPS
-            "TTL": 300,
-            "data": `1 ${domain}. alpn=h2,h3 port=443 endpoint=${endpointPath}`
-          },
-          {
-            "name": recordTargetName,
-            "type": 16, // TXT
-            "TTL": 300,
-            "data": txtValue
-          }
-        ],
+        "Answer": answers,
         "Authority": [
           {
             "name": `${domain}.`,
@@ -2308,44 +2508,6 @@ ${commonFooter}`;
 - [API Documentation](${origin}/docs/api)
 ${commonFooter}`;
   }
-
-  // Intercept GET/HEAD requests requesting text/markdown (Markdown for Agents)
-  app.use((req, res, next) => {
-    if (req.method !== "GET" && req.method !== "HEAD") {
-      return next();
-    }
-
-    const accept = (req.headers["accept"] as string) || "";
-    const wantsMarkdown =
-      req.query.format === "markdown" ||
-      req.query.markdown === "1" ||
-      req.query.markdown === "true" ||
-      accept.includes("text/markdown");
-
-    // Only apply to HTML routes / page navigation, not static assets (js, css, images, etc.)
-    const p = req.path;
-    const isAsset = /\.(js|css|svg|png|jpg|jpeg|webp|gif|ico|woff|woff2|ttf|wasm|json|xml|zone)$/i.test(p);
-
-    if (wantsMarkdown && !isAsset) {
-      const origin = getRequestOrigin(req);
-      const markdown = getMarkdownForPath(p, origin);
-      const tokens = estimateTokens(markdown);
-
-      res.setHeader("Content-Type", "text/markdown; charset=utf-8");
-      res.setHeader("x-markdown-tokens", tokens.toString());
-      res.setHeader("Vary", "Accept");
-      res.setHeader("Content-Signal", "ai-train=yes, search=yes, ai-input=yes");
-      res.setHeader("Link", AGENT_LINK_HEADERS);
-      res.setHeader("Access-Control-Allow-Origin", "*");
-
-      if (req.method === "HEAD") {
-        return res.status(200).end();
-      }
-      return res.status(200).send(markdown);
-    }
-
-    next();
-  });
 
   // Vite middleware for development vs static files for production
   const distPath = path.join(process.cwd(), "dist");

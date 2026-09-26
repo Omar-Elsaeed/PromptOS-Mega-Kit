@@ -53,27 +53,45 @@ _index._agents.example.com. 300 IN TXT "v=dnsaid1; type=index; catalog=https://e
 Standard negotiation point for live A2A streaming and RPC interactions:
 ```dns
 _a2a._agents.example.com. 300 IN SVCB 1 example.com. (
-  alpn="h2,h3"
+  alpn="a2a,h2,h3"
   port="443"
   endpoint="/api/gemini/stream"
-  mandatory="alpn"
+  mandatory="alpn,port"
 )
 _a2a._agents.example.com. 300 IN HTTPS 1 example.com. (
   alpn="h2,h3"
   port="443"
   endpoint="/api/gemini/stream"
 )
-_a2a._agents.example.com. 300 IN TXT "v=dnsaid1; proto=a2a; endpoint=https://example.com/api/gemini/stream; alpn=h2,h3"
+_a2a._agents.example.com. 300 IN TXT "v=dnsaid1; proto=a2a; endpoint=https://example.com/api/gemini/stream; alpn=a2a,h2,h3"
 ```
 
-### C. Specific Agent Service (`_promptos._a2a._agents.{domain}`)
+### C. Model Context Protocol (MCP) Entrypoint (`_mcp._agents.{domain}`)
+Standard discovery point for MCP server capabilities and cards:
+```dns
+_mcp._agents.example.com. 300 IN SVCB 1 example.com. (
+  alpn="h2,h3"
+  port="443"
+  endpoint="/.well-known/mcp.json"
+  key65300="path=/.well-known/mcp.json"
+  mandatory="alpn,port"
+)
+_mcp._agents.example.com. 300 IN HTTPS 1 example.com. (
+  alpn="h2,h3"
+  port="443"
+  endpoint="/.well-known/mcp.json"
+)
+_mcp._agents.example.com. 300 IN TXT "v=dnsaid1; proto=mcp; card=https://example.com/.well-known/mcp/server-card.json; endpoint=https://example.com/.well-known/mcp.json"
+```
+
+### D. Specific Agent Service (`_promptos._a2a._agents.{domain}`)
 Direct binding for the PromptOS MegaKit generation agent:
 ```dns
 _promptos._a2a._agents.example.com. 300 IN SVCB 1 example.com. (
   alpn="h2,h3"
   port="443"
   endpoint="/api/gemini/generate"
-  mandatory="alpn"
+  mandatory="alpn,port"
 )
 _promptos._a2a._agents.example.com. 300 IN TXT "v=dnsaid1; name=PromptOS MegaKit; capabilities=prompt_gen,bedrock_gen,fable5,gepa,evals"
 ```
