@@ -1,15 +1,26 @@
-import React, { useState } from 'react';
-import { Wand2, Sparkles, Copy, Check, RotateCcw, CheckCircle2, ArrowRight, Flame, Bot, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Wand2, Sparkles, Copy, Check, RotateCcw, CheckCircle2, ArrowRight, Flame, Bot, Loader2, History, BookmarkPlus, Trash2, Clock, CheckSquare } from 'lucide-react';
 import { NICHES_LIST } from '../data/niches';
 import { buildFable5Prompt, buildGEPAPrompt, buildGEPAPlusPrompt, buildNineStepPrompt } from '../utils/promptGenerators';
 import { generateAIContent } from '../utils/api';
 import { DifficultyLevel } from '../types';
+
+export interface PromptVersion {
+  id: string;
+  timestamp: number;
+  label: string;
+  source: 'ai_enhanced' | 'manual_snapshot' | 'baseline';
+  framework: 'ninestep' | 'fable5' | 'gepa' | 'gepaplus' | 'pro_fable5';
+  content: string;
+}
 
 interface SmartBuilderWizardProps {
   onCopy: (text: string, title: string) => void;
   initialNiche?: string;
   initialMode?: 'quick' | 'pro';
 }
+
+const STORAGE_KEY = 'promptos_smart_builder_versions_v1';
 
 export const SmartBuilderWizard: React.FC<SmartBuilderWizardProps> = ({
   onCopy,
@@ -41,6 +52,29 @@ export const SmartBuilderWizard: React.FC<SmartBuilderWizardProps> = ({
   const [copied, setCopied] = useState(false);
   const [isAiPolishing, setIsAiPolishing] = useState(false);
   const [aiOptimizedPrompt, setAiOptimizedPrompt] = useState<string | null>(null);
+
+  // Version history state
+  const [versions, setVersions] = useState<PromptVersion[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to load prompt versions:', e);
+    }
+    return [];
+  });
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [snapshotLabel, setSnapshotLabel] = useState('');
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(versions));
+    } catch (e) {
+      console.error('Failed to save prompt versions:', e);
+    }
+  }, [versions]);
 
   const getBaseGeneratedPrompt = () => {
     if (mode === 'quick') {
@@ -95,6 +129,49 @@ ${pReport}. Complete sentences. Clear beats short.`;
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleSaveVersion = (labelOverride?: string, contentOverride?: string, source: 'ai_enhanced' | 'manual_snapshot' | 'baseline' = 'manual_snapshot') => {
+    const textToSave = contentOverride || currentPromptText;
+    const fw = mode === 'pro' ? 'pro_fable5' : activeFw;
+    const defaultLabel = labelOverride || (source === 'ai_enhanced' 
+      ? `AI Enhanced (${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`
+      : `v${versions.length + 1}: ${mode === 'pro' ? 'Pro Fable 5' : fw.toUpperCase()} - ${qTask.slice(0, 24)}...`);
+
+    const newVer: PromptVersion = {
+      id: `ver-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      timestamp: Date.now(),
+      label: defaultLabel,
+      source,
+      framework: fw,
+      content: textToSave
+    };
+
+    setVersions(prev => [newVer, ...prev]);
+    setSelectedVersionId(newVer.id);
+    setSnapshotLabel('');
+    setSaveSuccessMsg(true);
+    setTimeout(() => setSaveSuccessMsg(false), 2500);
+  };
+
+  const handleSelectVersion = (version: PromptVersion) => {
+    setSelectedVersionId(version.id);
+    setAiOptimizedPrompt(version.content);
+  };
+
+  const handleDeleteVersion = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setVersions(prev => prev.filter(v => v.id !== id));
+    if (selectedVersionId === id) {
+      setSelectedVersionId(null);
+    }
+  };
+
+  const handleClearAllVersions = () => {
+    if (window.confirm('Clear all saved prompt versions?')) {
+      setVersions([]);
+      setSelectedVersionId(null);
+    }
+  };
+
   const handleAiPolish = async () => {
     setIsAiPolishing(true);
     const base = getBaseGeneratedPrompt();
@@ -105,7 +182,10 @@ ${pReport}. Complete sentences. Clear beats short.`;
         temperature: 0.2
       });
       if (res.text && res.text.trim()) {
-        setAiOptimizedPrompt(res.text.trim());
+        const polished = res.text.trim();
+        setAiOptimizedPrompt(polished);
+        // Automatically snapshot AI enhancements into version history
+        handleSaveVersion(`AI Calibrated v${versions.length + 1}`, polished, 'ai_enhanced');
       }
     } catch (e) {
       console.error(e);
@@ -116,6 +196,7 @@ ${pReport}. Complete sentences. Clear beats short.`;
 
   const handleResetAi = () => {
     setAiOptimizedPrompt(null);
+    setSelectedVersionId(null);
   };
 
   return (
@@ -336,6 +417,24 @@ ${pReport}. Complete sentences. Clear beats short.`;
 
                 <div className="flex items-center gap-2">
                   <button
+                    onClick={() => setShowVersionHistory(!showVersionHistory)}
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1.5 transition-all ${
+                      showVersionHistory || versions.length > 0
+                        ? 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                    title="Toggle Prompt Versions"
+                  >
+                    <History className="w-3.5 h-3.5 text-purple-600" />
+                    <span>History</span>
+                    {versions.length > 0 && (
+                      <span className="px-1.5 py-0.2 rounded-full bg-purple-200 text-purple-800 text-[10px] font-mono">
+                        {versions.length}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
                     onClick={handleAiPolish}
                     disabled={isAiPolishing}
                     className="px-3 py-1.5 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
@@ -364,13 +463,150 @@ ${pReport}. Complete sentences. Clear beats short.`;
                 </div>
               </div>
 
+              {/* Version History Drawer / Panel */}
+              {showVersionHistory && (
+                <div className="mb-4 p-3.5 rounded-xl bg-purple-50/60 border border-purple-200/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <History className="w-4 h-4 text-purple-700" />
+                      <span className="text-xs font-black text-purple-900 tracking-tight">Prompt Version History</span>
+                      <span className="text-[11px] text-purple-600">({versions.length} saved)</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {versions.length > 0 && (
+                        <button
+                          onClick={handleClearAllVersions}
+                          className="text-[11px] text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1 px-2 py-0.5 rounded hover:bg-rose-50"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>Clear All</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Save snapshot input */}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Custom version name (e.g. Optimized v2 - strict tone)..."
+                      value={snapshotLabel}
+                      onChange={(e) => setSnapshotLabel(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveVersion(snapshotLabel.trim() || undefined);
+                      }}
+                      className="flex-1 px-3 py-1.5 rounded-lg border border-purple-200 text-xs bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-purple-500"
+                    />
+                    <button
+                      onClick={() => handleSaveVersion(snapshotLabel.trim() || undefined)}
+                      className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-colors shrink-0"
+                    >
+                      <BookmarkPlus className="w-3.5 h-3.5" />
+                      <span>Save Version</span>
+                    </button>
+                  </div>
+
+                  {saveSuccessMsg && (
+                    <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Version snapshot saved to history!</span>
+                    </div>
+                  )}
+
+                  {/* Versions List */}
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {versions.length === 0 ? (
+                      <div className="text-center py-4 text-xs text-purple-500/80">
+                        No saved versions yet. Click "Save Version" or run "AI Enhance" to automatically record snapshots.
+                      </div>
+                    ) : (
+                      versions.map((ver) => {
+                        const isSelected = selectedVersionId === ver.id;
+                        return (
+                          <div
+                            key={ver.id}
+                            onClick={() => handleSelectVersion(ver)}
+                            className={`p-2.5 rounded-lg border cursor-pointer transition-all flex items-center justify-between gap-3 ${
+                              isSelected
+                                ? 'bg-white border-purple-500 shadow-2xs ring-1 ring-purple-500'
+                                : 'bg-white/80 border-purple-100 hover:bg-white hover:border-purple-300'
+                            }`}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className={`text-xs font-bold truncate ${isSelected ? 'text-purple-900' : 'text-slate-800'}`}>
+                                  {ver.label}
+                                </span>
+                                {ver.source === 'ai_enhanced' && (
+                                  <span className="px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold flex items-center gap-0.5 shrink-0">
+                                    <Sparkles className="w-2.5 h-2.5 text-amber-600" />
+                                    AI
+                                  </span>
+                                )}
+                                <span className="px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600 text-[10px] font-mono shrink-0 uppercase">
+                                  {ver.framework}
+                                </span>
+                              </div>
+                              <div className="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-2.5 h-2.5" />
+                                  {new Date(ver.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </span>
+                                <span>•</span>
+                                <span>{ver.content.length} chars</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {isSelected ? (
+                                <span className="px-2 py-0.5 rounded-full bg-purple-600 text-white text-[10px] font-bold flex items-center gap-1">
+                                  <CheckSquare className="w-3 h-3" />
+                                  Active
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleSelectVersion(ver); }}
+                                  className="px-2 py-0.5 rounded-md border border-slate-200 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 text-[10px] font-bold text-slate-600 transition-colors"
+                                >
+                                  Load
+                                </button>
+                              )}
+                              <button
+                                onClick={(e) => handleDeleteVersion(ver.id, e)}
+                                className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                title="Delete version"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+
               {aiOptimizedPrompt && (
                 <div className="mb-2 px-3 py-1.5 rounded-lg bg-orange-50 border border-orange-200 text-[11px] font-bold text-orange-800 flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
                     <Sparkles className="w-3 h-3 text-orange-600" />
-                    Enhanced by Live Gemini AI Engine
+                    {selectedVersionId 
+                      ? `Viewing Saved Snapshot (${versions.find(v => v.id === selectedVersionId)?.label || 'Version'})` 
+                      : 'Enhanced by Live Gemini AI Engine'}
                   </span>
-                  <span className="text-[10px] text-orange-600 font-semibold">Gemini 3.7 Flash</span>
+                  <div className="flex items-center gap-2">
+                    {selectedVersionId && (
+                      <button
+                        onClick={handleResetAi}
+                        className="text-orange-600 hover:text-orange-800 underline text-[10px] font-semibold"
+                      >
+                        Back to Live Draft
+                      </button>
+                    )}
+                    <span className="text-[10px] text-orange-600 font-semibold">Gemini 3.7 Flash</span>
+                  </div>
                 </div>
               )}
 
