@@ -1,12 +1,13 @@
 import React from 'react';
-import { Sparkles, ArrowRight, Zap, CheckCircle2, ShieldCheck, Database, Flame } from 'lucide-react';
+import { Sparkles, ArrowRight, Zap, CheckCircle2, ShieldCheck, Database, Flame, Compass } from 'lucide-react';
 
 interface HeroProps {
   onQuickStart: () => void;
   onExploreFable5: () => void;
+  onOpenTour?: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5 }) => {
+export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpenTour }) => {
   const fableBlocks = [
     { num: '①', name: 'Task' },
     { num: '②', name: 'Context' },
@@ -67,6 +68,15 @@ export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5 }) => 
           >
             Explore Fable 5 Anatomy
           </button>
+          {onOpenTour && (
+            <button
+              onClick={onOpenTour}
+              className="px-5 py-3.5 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 border border-orange-200/90 text-orange-800 font-bold text-sm shadow-xs transition-all flex items-center gap-2 group"
+            >
+              <Compass className="w-4 h-4 text-orange-600 group-hover:rotate-45 transition-transform" />
+              <span>Feature Tour</span>
+            </button>
+          )}
         </div>
 
         {/* Live Key Stats in Ultra-White Cards */}

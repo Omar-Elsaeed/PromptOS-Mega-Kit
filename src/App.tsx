@@ -21,6 +21,11 @@ import { SmartBuilderWizard } from './components/SmartBuilderWizard';
 import { BedrockAgentStudio } from './components/BedrockAgentStudio';
 import { SavedDrawers } from './components/SavedDrawers';
 import { Footer } from './components/Footer';
+import { OnboardingTour } from './components/OnboardingTour';
+import { Sidebar } from './components/Sidebar';
+import { BreadcrumbNav } from './components/BreadcrumbNav';
+import { AnalyzeWebsiteModal } from './components/AnalyzeWebsiteModal';
+import { SettingsModal } from './components/SettingsModal';
 import { CheckCircle2, Copy } from 'lucide-react';
 import { Analytics } from '@vercel/analytics/react';
 
@@ -78,6 +83,35 @@ export default function App() {
   const [targetSkillId, setTargetSkillId] = useState<string | undefined>(undefined);
   const [builderInitialNiche, setBuilderInitialNiche] = useState<string>('AI Engineering');
   const [builderMode, setBuilderMode] = useState<'quick' | 'pro'>('quick');
+
+  // Global search state synced across Header and Prompt Library
+  const [globalSearchQuery, setGlobalSearchQuery] = useState<string>('');
+
+  // Onboarding Feature Tour Modal state
+  const [isTourOpen, setIsTourOpen] = useState(false);
+
+  // Floating Quick Action Modals state
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAnalyzeWebsiteOpen, setIsAnalyzeWebsiteOpen] = useState(false);
+
+  // Sidebar state (mobile slide-over & desktop collapse)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Auto-launch tour for first-time visitors if not yet completed
+  useEffect(() => {
+    try {
+      const hasCompleted = localStorage.getItem('promptos_onboarding_completed');
+      if (!hasCompleted) {
+        const timer = setTimeout(() => {
+          setIsTourOpen(true);
+        }, 1200);
+        return () => clearTimeout(timer);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   // Sync theme with document element
   useEffect(() => {
@@ -225,82 +259,162 @@ export default function App() {
           setActiveTab(tab as TabType);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
+        onToggleSidebar={() => {
+          if (window.innerWidth < 1024) {
+            setIsSidebarOpen(!isSidebarOpen);
+          } else {
+            setIsSidebarCollapsed(!isSidebarCollapsed);
+          }
+        }}
+        isSidebarOpen={isSidebarOpen}
         favoritesCount={favorites.length}
         historyCount={history.length}
         theme={theme}
         onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')}
         onOpenFavorites={() => setSavedDrawerType('favorites')}
         onOpenHistory={() => setSavedDrawerType('history')}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        onStartTour={() => setIsTourOpen(true)}
+        onOpenTour={() => setIsTourOpen(true)}
+        searchQuery={globalSearchQuery}
+        onSearchChange={setGlobalSearchQuery}
+        onSelectPrompt={(prompt) => {
+          setGlobalSearchQuery(prompt.title);
+          setActiveTab('library');
+          setTimeout(() => {
+            const el = document.getElementById('library-search-input') || document.getElementById('prompt-library-grid');
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
+        }}
+        onCopy={handleCopy}
+        onTestInPlayground={handleTestInPlayground}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1">
-        {/* Render Tab Views */}
-        {activeTab === 'library' && (
-          <>
-            <Hero
-              onQuickStart={() => {
-                setBuilderMode('quick');
-                setActiveTab('builder');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onExploreFable5={() => {
-                setActiveTab('fable5');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-            />
-            <PromptLibrary
-              onCopy={handleCopy}
-              onSaveFavorite={toggleFavorite}
-              isFavorite={isFavorite}
-              onAddToHistory={addToHistory}
-              onCustomizeInBuilder={handleCustomizeInBuilder}
-              onUseInAutomation={handleUseInAutomation}
-              onTestInPlayground={handleTestInPlayground}
-              onSelectSkill={handleSelectSkill}
-            />
-          </>
-        )}
+      {/* Main Content Layout with Left-Side Bar Navigation */}
+      <div className="flex-1 flex w-full relative">
+        {/* Left Sidebar */}
+        <Sidebar
+          activeTab={activeTab}
+          onSelectTab={(tab) => {
+            setActiveTab(tab as TabType);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          onStartTour={() => setIsTourOpen(true)}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenAnalyzeWebsite={() => setIsAnalyzeWebsiteOpen(true)}
+          onNewAgentBlueprint={() => {
+            setActiveTab('agents');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          favoritesCount={favorites.length}
+          historyCount={history.length}
+        />
 
-        {activeTab === 'fable5' && (
-          <Fable5Guide
-            onOpenQuickBuild={() => {
-              setBuilderMode('quick');
-              setActiveTab('builder');
+        {/* Center / Main Content Column */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Breadcrumb Navigation Trail */}
+          <BreadcrumbNav
+            activeTab={activeTab}
+            onSelectTab={(tab) => {
+              setActiveTab(tab);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            onOpenProBuild={() => {
-              setBuilderMode('pro');
-              setActiveTab('builder');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            onCopy={handleCopy}
+            builderMode={builderMode}
+            builderNiche={builderInitialNiche}
+            targetSkillId={targetSkillId}
+            searchQuery={globalSearchQuery}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenTour={() => setIsTourOpen(true)}
+            onCopyNotice={(msg) => showToast(msg)}
           />
-        )}
 
-        {activeTab === 'builder' && (
-          <SmartBuilderWizard
-            onCopy={handleCopy}
-            initialNiche={builderInitialNiche}
-            initialMode={builderMode}
-          />
-        )}
+          <main className="flex-1">
+            {/* Render Tab Views */}
+            {activeTab === 'library' && (
+              <>
+                <Hero
+                  onQuickStart={() => {
+                    setBuilderMode('quick');
+                    setActiveTab('builder');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  onExploreFable5={() => {
+                    setActiveTab('fable5');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  onOpenTour={() => setIsTourOpen(true)}
+                />
+                <PromptLibrary
+                  onCopy={handleCopy}
+                  onSaveFavorite={toggleFavorite}
+                  isFavorite={isFavorite}
+                  onAddToHistory={addToHistory}
+                  onCustomizeInBuilder={handleCustomizeInBuilder}
+                  onUseInAutomation={handleUseInAutomation}
+                  onTestInPlayground={handleTestInPlayground}
+                  onSelectSkill={handleSelectSkill}
+                  searchQuery={globalSearchQuery}
+                  onSearchChange={setGlobalSearchQuery}
+                />
+              </>
+            )}
 
-        {activeTab === 'bedrock' && <BedrockAgentStudio onCopy={handleCopy} />}
-        {activeTab === 'langchain' && <LangChainStudio onCopy={handleCopy} />}
-        {activeTab === 'crewai' && <CrewAIStudio onCopy={handleCopy} />}
-        {activeTab === 'evals' && <EvalsStudio onCopy={handleCopy} />}
-        {activeTab === 'finetuning' && <FineTuningStudio onCopy={handleCopy} />}
-        {activeTab === 'automation' && <AutomationBuilder onCopy={handleCopy} />}
-        {activeTab === 'agents' && <AgentBlueprintBuilder onCopy={handleCopy} />}
-        {activeTab === 'skills' && <ClaudeSkillStudio onCopy={handleCopy} initialSkillId={targetSkillId} />}
-        {activeTab === 'compare' && <ModelCompareStudio onCopy={handleCopy} />}
-        {activeTab === 'playground' && <AgentPlayground onCopy={handleCopy} initialPrompt={targetPromptForPlayground} />}
-        {activeTab === 'community' && <CommunityHub onCopy={handleCopy} />}
-        {activeTab === 'knowledge' && <KnowledgePortal onCopy={handleCopy} />}
-        {activeTab === 'store' && <PromptStore onCopy={handleCopy} />}
-        {activeTab === 'blueprint' && <StrategicBlueprint onCopy={handleCopy} />}
-      </main>
+            {activeTab === 'fable5' && (
+              <Fable5Guide
+                onOpenQuickBuild={() => {
+                  setBuilderMode('quick');
+                  setActiveTab('builder');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onOpenProBuild={() => {
+                  setBuilderMode('pro');
+                  setActiveTab('builder');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onCopy={handleCopy}
+              />
+            )}
+
+            {activeTab === 'builder' && (
+              <SmartBuilderWizard
+                onCopy={handleCopy}
+                initialNiche={builderInitialNiche}
+                initialMode={builderMode}
+                onOpenTour={() => setIsTourOpen(true)}
+              />
+            )}
+
+            {activeTab === 'bedrock' && <BedrockAgentStudio onCopy={handleCopy} />}
+            {activeTab === 'langchain' && <LangChainStudio onCopy={handleCopy} />}
+            {activeTab === 'crewai' && <CrewAIStudio onCopy={handleCopy} />}
+            {activeTab === 'evals' && <EvalsStudio onCopy={handleCopy} />}
+            {activeTab === 'finetuning' && <FineTuningStudio onCopy={handleCopy} />}
+            {activeTab === 'automation' && <AutomationBuilder onCopy={handleCopy} />}
+            {activeTab === 'agents' && <AgentBlueprintBuilder onCopy={handleCopy} />}
+            {activeTab === 'skills' && <ClaudeSkillStudio onCopy={handleCopy} initialSkillId={targetSkillId} />}
+            {activeTab === 'compare' && (
+              <ModelCompareStudio
+                onCopy={handleCopy}
+                onOpenTour={() => setIsTourOpen(true)}
+              />
+            )}
+            {activeTab === 'playground' && <AgentPlayground onCopy={handleCopy} initialPrompt={targetPromptForPlayground} />}
+            {activeTab === 'community' && <CommunityHub onCopy={handleCopy} />}
+            {activeTab === 'knowledge' && <KnowledgePortal onCopy={handleCopy} />}
+            {activeTab === 'store' && <PromptStore onCopy={handleCopy} />}
+            {activeTab === 'blueprint' && <StrategicBlueprint onCopy={handleCopy} />}
+          </main>
+
+          {/* Footer */}
+          <Footer onNavigate={(tab) => { setActiveTab(tab as TabType); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+        </div>
+      </div>
 
       {/* Favorites & History Drawer */}
       <SavedDrawers
@@ -315,8 +429,56 @@ export default function App() {
         onCustomizeInBuilder={handleCustomizeInBuilder}
       />
 
-      {/* Footer */}
-      <Footer onNavigate={(tab) => { setActiveTab(tab as TabType); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+      {/* Onboarding Tour Modal */}
+      <OnboardingTour
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+        onNavigateToTab={(tab) => {
+          setActiveTab(tab as TabType);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+
+      {/* Analyze Website Modal (Quick Action) */}
+      <AnalyzeWebsiteModal
+        isOpen={isAnalyzeWebsiteOpen}
+        onClose={() => setIsAnalyzeWebsiteOpen(false)}
+        onCustomizeInBuilder={(prompt) => {
+          handleCustomizeInBuilder({
+            id: 'analyzed-website-intel',
+            title: 'Website Intelligence & Reverse-Engineered Prompt',
+            niche: 'Software Architecture',
+            role: 'Principal Platform Architect',
+            difficulty: 'Expert',
+            framework: 'Ruben Fable 5',
+            downloads: 1,
+            price: 0,
+            icon: '🌐',
+            prompt
+          });
+        }}
+        onCopy={handleCopy}
+      />
+
+      {/* Settings Modal (Quick Action) */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        theme={theme}
+        onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+        onResetTour={() => setIsTourOpen(true)}
+        onClearHistory={handleClearHistory}
+        onClearFavorites={() => {
+          setFavorites([]);
+          try {
+            localStorage.setItem('promptos_favorites_v1', '[]');
+          } catch (e) {
+            console.error(e);
+          }
+        }}
+        favoritesCount={favorites.length}
+        historyCount={history.length}
+      />
 
       {/* Toast Notification */}
       {toastMessage && (

@@ -386,3 +386,47 @@ export function getPromptByIndex(globalIndex: number): PromptItem {
     icon
   };
 }
+
+/**
+ * Fast in-memory search across representative prompt vault samples for instant real-time header filtering
+ */
+export function searchLibraryPrompts(
+  query: string,
+  limit: number = 6
+): { results: PromptItem[]; totalEstimatedMatches: number } {
+  if (!query || !query.trim()) {
+    return { results: [], totalEstimatedMatches: 0 };
+  }
+
+  const q = query.toLowerCase().trim();
+  const results: PromptItem[] = [];
+  let matchCount = 0;
+
+  // Scan across 2,500 deterministic prompt indices spanning all 204 niches
+  const sampleSize = 2500;
+  for (let i = 0; i < sampleSize; i++) {
+    const nIdx = i % NICHES_LIST.length;
+    const globalIdx = nIdx * 500 + Math.floor(i / NICHES_LIST.length);
+    const p = getPromptByIndex(globalIdx);
+
+    const match =
+      p.title.toLowerCase().includes(q) ||
+      p.niche.toLowerCase().includes(q) ||
+      p.role.toLowerCase().includes(q) ||
+      p.framework.toLowerCase().includes(q) ||
+      p.difficulty.toLowerCase().includes(q);
+
+    if (match) {
+      matchCount++;
+      if (results.length < limit) {
+        results.push(p);
+      }
+    }
+  }
+
+  // Estimate total matching pool based on the 100,000 prompt vault size
+  const totalEstimatedMatches =
+    matchCount > 0 ? Math.max(matchCount, Math.round(matchCount * (100000 / sampleSize))) : 0;
+
+  return { results, totalEstimatedMatches };
+}

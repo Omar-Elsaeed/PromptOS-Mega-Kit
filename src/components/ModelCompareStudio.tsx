@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { Layers, Copy, Check, Play, Sparkles, Trophy, Flame, Gauge, Zap } from 'lucide-react';
+import { Layers, Copy, Check, Play, Sparkles, Trophy, Flame, Gauge, Zap, Cpu, Table, Grid3X3, ArrowRight, ShieldCheck, Database, FileCode, Compass } from 'lucide-react';
 import { generateAIContent } from '../utils/api';
+import { LLMCapabilityMatrixModal, LLM_MODELS_DATA } from './LLMCapabilityMatrixModal';
 
 interface ModelCompareStudioProps {
   onCopy: (text: string, title: string) => void;
+  onOpenTour?: () => void;
 }
 
-export const ModelCompareStudio: React.FC<ModelCompareStudioProps> = ({ onCopy }) => {
+export const ModelCompareStudio: React.FC<ModelCompareStudioProps> = ({ onCopy, onOpenTour }) => {
   const [testPrompt, setTestPrompt] = useState('Write a 3-step Python async function that downloads 5 URLs concurrently using httpx, extracts the H1 titles using BeautifulSoup, and returns a JSON summary.');
   const [running, setRunning] = useState(false);
   const [evaluatingWinner, setEvaluatingWinner] = useState(false);
+  const [isMatrixOpen, setIsMatrixOpen] = useState(false);
 
   const [modelAResult, setModelAResult] = useState<string | null>(null);
   const [modelBResult, setModelBResult] = useState<string | null>(null);
@@ -102,20 +105,87 @@ Provide strict JSON output:
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Studio Header */}
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200 text-xs font-bold text-orange-700 mb-3 shadow-2xs">
-          <Layers className="w-3.5 h-3.5 text-orange-500" />
-          <span>⚖️ Multi-Model Benchmark & Arena</span>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200 text-xs font-bold text-orange-700 mb-3 shadow-2xs">
+            <Layers className="w-3.5 h-3.5 text-orange-500" />
+            <span>⚖️ Multi-Model Benchmark & Arena</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Side-by-Side Model Comparison &{' '}
+            <span className="bg-gradient-to-r from-orange-600 via-red-500 to-rose-600 bg-clip-text text-transparent">
+              AI Referee
+            </span>
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
+            Execute prompt benchmarks concurrently across foundation models with automated scoring and referee analysis.
+          </p>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-          Side-by-Side Model Comparison &{' '}
-          <span className="bg-gradient-to-r from-orange-600 via-red-500 to-rose-600 bg-clip-text text-transparent">
-            AI Referee
-          </span>
-        </h2>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
-          Execute prompt benchmarks concurrently across foundation models with automated scoring and referee analysis.
-        </p>
+
+        <div className="flex items-center gap-2 self-start md:self-center flex-wrap">
+          {onOpenTour && (
+            <button
+              onClick={onOpenTour}
+              className="px-3.5 py-2.5 rounded-2xl bg-white hover:bg-orange-50/70 border border-slate-200 hover:border-orange-300 text-slate-800 text-xs font-bold transition-all shadow-xs flex items-center gap-2 group shrink-0"
+              title="Start ModelCompare Feature Walkthrough Tour"
+            >
+              <Compass className="w-4 h-4 text-orange-600 group-hover:rotate-45 transition-transform" />
+              <span>ModelCompare Tour</span>
+            </button>
+          )}
+
+          {/* LLM Capability Matrix Overlay Trigger */}
+          <button
+            onClick={() => setIsMatrixOpen(true)}
+            className="px-4 py-2.5 rounded-2xl bg-white hover:bg-slate-50 border-2 border-orange-200 hover:border-orange-400 text-slate-800 shadow-xs hover:shadow-md transition-all flex items-center gap-3 group"
+          >
+            <div className="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+              <Cpu className="w-4 h-4" />
+            </div>
+            <div className="text-left">
+              <div className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                <span>LLM Capability Matrix</span>
+                <span className="px-1.5 py-0.2 rounded bg-orange-100 text-orange-700 text-[10px] font-extrabold">
+                  Live Grid
+                </span>
+              </div>
+              <div className="text-[10px] text-slate-500 font-medium">
+                System prompts, tool calling & context windows
+              </div>
+            </div>
+            <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-orange-600 group-hover:translate-x-0.5 transition-all ml-1" />
+          </button>
+        </div>
+      </div>
+
+      {/* Quick Capability Banner */}
+      <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white border border-slate-700 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 shrink-0">
+            <Table className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black tracking-tight text-white">
+                Multi-Model Architecture Matrix
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                8 Frontier Models Indexed
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-300 mt-0.5">
+              Compare token windows (up to 2M), native tool calling, strict JSON Schema guarantees, and code sandboxes across Google, Anthropic, OpenAI & Open Weights.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setIsMatrixOpen(true)}
+          className="self-start lg:self-auto px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs shrink-0"
+        >
+          <span>Open Full Capability Matrix</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       {/* Prompt input card */}
@@ -190,20 +260,43 @@ Provide strict JSON output:
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Model A */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-3">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-              <h4 className="text-xs font-black text-slate-900">Model A: Gemini 3.7 Flash</h4>
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+                <h4 className="text-xs font-black text-slate-900">Model A: Gemini 2.5 Flash</h4>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="px-1.5 py-0.2 rounded bg-orange-50 border border-orange-200 text-orange-700 text-[10px] font-bold">
+                  1M Window
+                </span>
+                <span className="px-1.5 py-0.2 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
+                  Native Python
+                </span>
+                <span className="px-1.5 py-0.2 rounded bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold">
+                  Strict JSON
+                </span>
+              </div>
             </div>
-            {modelAResult && (
+
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => onCopy(modelAResult, 'Model A Output')}
-                className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1"
+                onClick={() => setIsMatrixOpen(true)}
+                className="text-[11px] font-semibold text-slate-500 hover:text-orange-600 transition-colors"
+                title="View full specs in matrix"
               >
-                <Copy className="w-3.5 h-3.5" />
-                <span>Copy</span>
+                Specs
               </button>
-            )}
+              {modelAResult && (
+                <button
+                  onClick={() => onCopy(modelAResult, 'Model A Output')}
+                  className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 px-2 py-1 rounded-lg bg-orange-50"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {modelAResult ? (
@@ -219,20 +312,43 @@ Provide strict JSON output:
 
         {/* Model B */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-3">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-              <h4 className="text-xs font-black text-slate-900">Model B: Gemini 3.1 Pro</h4>
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                <h4 className="text-xs font-black text-slate-900">Model B: Gemini 2.5 Pro</h4>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="px-1.5 py-0.2 rounded bg-orange-50 border border-orange-200 text-orange-700 text-[10px] font-bold">
+                  2M Window
+                </span>
+                <span className="px-1.5 py-0.2 rounded bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold">
+                  Deep Reasoning
+                </span>
+                <span className="px-1.5 py-0.2 rounded bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold">
+                  Audio/Video
+                </span>
+              </div>
             </div>
-            {modelBResult && (
+
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => onCopy(modelBResult, 'Model B Output')}
-                className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1"
+                onClick={() => setIsMatrixOpen(true)}
+                className="text-[11px] font-semibold text-slate-500 hover:text-orange-600 transition-colors"
+                title="View full specs in matrix"
               >
-                <Copy className="w-3.5 h-3.5" />
-                <span>Copy</span>
+                Specs
               </button>
-            )}
+              {modelBResult && (
+                <button
+                  onClick={() => onCopy(modelBResult, 'Model B Output')}
+                  className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1 px-2 py-1 rounded-lg bg-red-50"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {modelBResult ? (
@@ -246,6 +362,12 @@ Provide strict JSON output:
           )}
         </div>
       </div>
+
+      {/* LLM Capability Matrix Overlay Modal */}
+      <LLMCapabilityMatrixModal
+        isOpen={isMatrixOpen}
+        onClose={() => setIsMatrixOpen(false)}
+      />
     </div>
   );
 };

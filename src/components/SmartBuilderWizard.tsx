@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Wand2, Sparkles, Copy, Check, RotateCcw, CheckCircle2, ArrowRight, Flame, Bot, Loader2, History, BookmarkPlus, Trash2, Clock, CheckSquare } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Wand2, Sparkles, Copy, Check, RotateCcw, CheckCircle2, ArrowRight, Flame, Bot, Loader2, History, BookmarkPlus, Trash2, Clock, CheckSquare, CloudCheck, Save, GitCompare, X, SplitSquareVertical, Edit2, Compass } from 'lucide-react';
 import { NICHES_LIST } from '../data/niches';
 import { buildFable5Prompt, buildGEPAPrompt, buildGEPAPlusPrompt, buildNineStepPrompt } from '../utils/promptGenerators';
 import { generateAIContent } from '../utils/api';
@@ -9,15 +9,53 @@ export interface PromptVersion {
   id: string;
   timestamp: number;
   label: string;
-  source: 'ai_enhanced' | 'manual_snapshot' | 'baseline';
+  source: 'ai_enhanced' | 'manual_snapshot' | 'baseline' | 'auto_save';
   framework: 'ninestep' | 'fable5' | 'gepa' | 'gepaplus' | 'pro_fable5';
   content: string;
+}
+
+interface DiffLine {
+  type: 'same' | 'added' | 'removed' | 'empty';
+  text: string;
+  lineNum?: number;
+}
+
+function computeSideBySideDiff(leftText: string, rightText: string): { leftLines: DiffLine[]; rightLines: DiffLine[] } {
+  const leftRaw = leftText.split('\n');
+  const rightRaw = rightText.split('\n');
+  const leftLines: DiffLine[] = [];
+  const rightLines: DiffLine[] = [];
+
+  const maxLen = Math.max(leftRaw.length, rightRaw.length);
+  for (let i = 0; i < maxLen; i++) {
+    const l = leftRaw[i];
+    const r = rightRaw[i];
+
+    if (l !== undefined && r !== undefined) {
+      if (l === r) {
+        leftLines.push({ type: 'same', text: l, lineNum: i + 1 });
+        rightLines.push({ type: 'same', text: r, lineNum: i + 1 });
+      } else {
+        leftLines.push({ type: 'removed', text: l, lineNum: i + 1 });
+        rightLines.push({ type: 'added', text: r, lineNum: i + 1 });
+      }
+    } else if (l !== undefined && r === undefined) {
+      leftLines.push({ type: 'removed', text: l, lineNum: i + 1 });
+      rightLines.push({ type: 'empty', text: '' });
+    } else if (l === undefined && r !== undefined) {
+      leftLines.push({ type: 'empty', text: '' });
+      rightLines.push({ type: 'added', text: r, lineNum: i + 1 });
+    }
+  }
+
+  return { leftLines, rightLines };
 }
 
 interface SmartBuilderWizardProps {
   onCopy: (text: string, title: string) => void;
   initialNiche?: string;
   initialMode?: 'quick' | 'pro';
+  onOpenTour?: () => void;
 }
 
 const STORAGE_KEY = 'promptos_smart_builder_versions_v1';
@@ -25,7 +63,8 @@ const STORAGE_KEY = 'promptos_smart_builder_versions_v1';
 export const SmartBuilderWizard: React.FC<SmartBuilderWizardProps> = ({
   onCopy,
   initialNiche = 'AI Engineering',
-  initialMode = 'quick'
+  initialMode = 'quick',
+  onOpenTour
 }) => {
   const [mode, setMode] = useState<'quick' | 'pro'>(initialMode);
 
@@ -67,6 +106,20 @@ export const SmartBuilderWizard: React.FC<SmartBuilderWizardProps> = ({
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [snapshotLabel, setSnapshotLabel] = useState('');
   const [saveSuccessMsg, setSaveSuccessMsg] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'typing' | 'saved'>('idle');
+
+  // Side-by-side diff viewer state
+  const [diffMode, setDiffMode] = useState<boolean>(false);
+  const [diffLeftId, setDiffLeftId] = useState<string>('');
+  const [diffRightId, setDiffRightId] = useState<string>('');
+
+  // Version label rename state
+  const [editingVersionId, setEditingVersionId] = useState<string | null>(null);
+  const [editingLabelValue, setEditingLabelValue] = useState<string>('');
+
+  // Keep ref of last auto-saved content to avoid duplicating identical snapshots
+  const lastSavedContentRef = useRef<string>('');
+  const isFirstMountRef = useRef<boolean>(true);
 
   useEffect(() => {
     try {
@@ -123,6 +176,66 @@ ${pReport}. Complete sentences. Clear beats short.`;
 
   const currentPromptText = aiOptimizedPrompt || getBaseGeneratedPrompt();
 
+  // Auto-save debounced snapshot every time user pauses typing for > 2 seconds
+  useEffect(() => {
+    // Skip saving on initial mount
+    if (isFirstMountRef.current) {
+      isFirstMountRef.current = false;
+      lastSavedContentRef.current = currentPromptText;
+      return;
+    }
+
+    // If user is currently inspecting a past snapshot without modifying it, don't auto-save
+    if (selectedVersionId) {
+      return;
+    }
+
+    // If text hasn't changed compared to last saved snapshot, no need to save
+    if (currentPromptText === lastSavedContentRef.current) {
+      return;
+    }
+
+    setAutoSaveStatus('typing');
+
+    const timer = setTimeout(() => {
+      const fw = mode === 'pro' ? 'pro_fable5' : activeFw;
+      const taskExcerpt = (mode === 'quick' ? qTask : pTask).trim().slice(0, 24) || 'Custom';
+      const label = `Auto-Save: ${mode === 'pro' ? 'Pro Fable 5' : fw.toUpperCase()} (${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })})`;
+
+      const newVer: PromptVersion = {
+        id: `ver-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        timestamp: Date.now(),
+        label,
+        source: 'auto_save',
+        framework: fw,
+        content: currentPromptText
+      };
+
+      lastSavedContentRef.current = currentPromptText;
+
+      setVersions(prev => {
+        // Keep list to a healthy max 30 versions to avoid unbounded storage
+        return [newVer, ...prev].slice(0, 30);
+      });
+
+      setAutoSaveStatus('saved');
+      const resetSavedStatusTimer = setTimeout(() => {
+        setAutoSaveStatus('idle');
+      }, 2500);
+
+      return () => clearTimeout(resetSavedStatusTimer);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [
+    currentPromptText,
+    selectedVersionId,
+    mode,
+    activeFw,
+    qTask,
+    pTask
+  ]);
+
   const handleCopy = () => {
     onCopy(currentPromptText, 'Custom Prompt Wizard Deliverable');
     setCopied(true);
@@ -157,6 +270,26 @@ ${pReport}. Complete sentences. Clear beats short.`;
     setAiOptimizedPrompt(version.content);
   };
 
+  const handleStartEditLabel = (ver: PromptVersion, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingVersionId(ver.id);
+    setEditingLabelValue(ver.label);
+  };
+
+  const handleSaveEditedLabel = (id: string, e?: React.MouseEvent | React.KeyboardEvent | React.FocusEvent) => {
+    if (e) e.stopPropagation();
+    const trimmed = editingLabelValue.trim();
+    if (trimmed) {
+      setVersions(prev => prev.map(v => (v.id === id ? { ...v, label: trimmed } : v)));
+    }
+    setEditingVersionId(null);
+  };
+
+  const handleCancelEditLabel = (e?: React.MouseEvent | React.KeyboardEvent) => {
+    if (e) e.stopPropagation();
+    setEditingVersionId(null);
+  };
+
   const handleDeleteVersion = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setVersions(prev => prev.filter(v => v.id !== id));
@@ -169,7 +302,16 @@ ${pReport}. Complete sentences. Clear beats short.`;
     if (window.confirm('Clear all saved prompt versions?')) {
       setVersions([]);
       setSelectedVersionId(null);
+      setDiffMode(false);
     }
+  };
+
+  const handleOpenDiff = (leftVerId?: string, rightVerId?: string) => {
+    const lId = leftVerId || (versions.length > 1 ? versions[1].id : (versions[0]?.id || ''));
+    const rId = rightVerId || (versions[0]?.id || '');
+    setDiffLeftId(lId);
+    setDiffRightId(rId);
+    setDiffMode(true);
   };
 
   const handleAiPolish = async () => {
@@ -202,20 +344,33 @@ ${pReport}. Complete sentences. Clear beats short.`;
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200 text-xs font-bold text-orange-700 mb-3 shadow-2xs">
-          <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500/20" />
-          <span>⚡ Smart Prompt Wizard & Calibrator</span>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200 text-xs font-bold text-orange-700 mb-3 shadow-2xs">
+            <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500/20" />
+            <span>⚡ Smart Prompt Wizard & Calibrator</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Custom Prompt Generator &{' '}
+            <span className="bg-gradient-to-r from-orange-600 via-red-500 to-rose-600 bg-clip-text text-transparent">
+              AI Engine Calibrator
+            </span>
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
+            Quickly assemble production-ready prompts using either 4 fast fields or the complete 11-block Fable 5 anatomy.
+          </p>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-          Custom Prompt Generator &{' '}
-          <span className="bg-gradient-to-r from-orange-600 via-red-500 to-rose-600 bg-clip-text text-transparent">
-            AI Engine Calibrator
-          </span>
-        </h2>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
-          Quickly assemble production-ready prompts using either 4 fast fields or the complete 11-block Fable 5 anatomy.
-        </p>
+
+        {onOpenTour && (
+          <button
+            onClick={onOpenTour}
+            className="self-start md:self-center px-4 py-2.5 rounded-2xl bg-white hover:bg-orange-50/70 border border-slate-200 hover:border-orange-300 text-slate-800 text-xs font-bold transition-all shadow-xs flex items-center gap-2 group"
+            title="Start SmartBuilder Feature Walkthrough Tour"
+          >
+            <Compass className="w-4 h-4 text-orange-600 group-hover:rotate-45 transition-transform" />
+            <span>SmartBuilder Tour</span>
+          </button>
+        )}
       </div>
 
       {/* Mode Switcher */}
@@ -434,6 +589,20 @@ ${pReport}. Complete sentences. Clear beats short.`;
                     )}
                   </button>
 
+                  {/* Auto-save status feedback */}
+                  {autoSaveStatus === 'typing' && (
+                    <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-amber-600 font-semibold px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 animate-pulse">
+                      <Save className="w-3 h-3 animate-spin" />
+                      Auto-saving...
+                    </span>
+                  )}
+                  {autoSaveStatus === 'saved' && (
+                    <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-emerald-600 font-semibold px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                      Snapshot saved
+                    </span>
+                  )}
+
                   <button
                     onClick={handleAiPolish}
                     disabled={isAiPolishing}
@@ -474,6 +643,15 @@ ${pReport}. Complete sentences. Clear beats short.`;
                     </div>
 
                     <div className="flex items-center gap-2">
+                      {versions.length >= 2 && (
+                        <button
+                          onClick={() => handleOpenDiff()}
+                          className="text-[11px] text-purple-700 hover:text-purple-900 font-bold flex items-center gap-1 px-2.5 py-1 rounded-md bg-purple-100 hover:bg-purple-200 transition-colors shadow-2xs"
+                        >
+                          <GitCompare className="w-3 h-3 text-purple-600" />
+                          <span>Compare Diff</span>
+                        </button>
+                      )}
                       {versions.length > 0 && (
                         <button
                           onClick={handleClearAllVersions}
@@ -534,14 +712,67 @@ ${pReport}. Complete sentences. Clear beats short.`;
                             }`}
                           >
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className={`text-xs font-bold truncate ${isSelected ? 'text-purple-900' : 'text-slate-800'}`}>
-                                  {ver.label}
-                                </span>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {editingVersionId === ver.id ? (
+                                  <div className="flex items-center gap-1.5 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+                                    <input
+                                      type="text"
+                                      autoFocus
+                                      value={editingLabelValue}
+                                      onChange={(e) => setEditingLabelValue(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleSaveEditedLabel(ver.id, e);
+                                        if (e.key === 'Escape') handleCancelEditLabel(e);
+                                      }}
+                                      onBlur={() => handleSaveEditedLabel(ver.id)}
+                                      className="px-2 py-0.5 rounded border border-purple-400 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500 w-full"
+                                      placeholder="Version label name..."
+                                    />
+                                    <button
+                                      onClick={(e) => handleSaveEditedLabel(ver.id, e)}
+                                      className="p-1 rounded bg-purple-600 text-white hover:bg-purple-700 transition-colors shrink-0"
+                                      title="Save name"
+                                    >
+                                      <Check className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      onClick={(e) => handleCancelEditLabel(e)}
+                                      className="p-1 rounded border border-slate-300 text-slate-500 hover:bg-slate-100 transition-colors shrink-0"
+                                      title="Cancel"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1.5 min-w-0 group/label">
+                                    <span className={`text-xs font-bold truncate ${isSelected ? 'text-purple-900' : 'text-slate-800'}`}>
+                                      {ver.label}
+                                    </span>
+                                    <button
+                                      onClick={(e) => handleStartEditLabel(ver, e)}
+                                      className="opacity-0 group-hover/label:opacity-100 p-0.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-all"
+                                      title="Rename version label"
+                                    >
+                                      <Edit2 className="w-2.5 h-2.5" />
+                                    </button>
+                                  </div>
+                                )}
                                 {ver.source === 'ai_enhanced' && (
                                   <span className="px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold flex items-center gap-0.5 shrink-0">
                                     <Sparkles className="w-2.5 h-2.5 text-amber-600" />
                                     AI
+                                  </span>
+                                )}
+                                {ver.source === 'auto_save' && (
+                                  <span className="px-1.5 py-0.2 rounded-md bg-sky-100 text-sky-800 text-[10px] font-bold flex items-center gap-0.5 shrink-0">
+                                    <CloudCheck className="w-2.5 h-2.5 text-sky-600" />
+                                    Auto
+                                  </span>
+                                )}
+                                {ver.source === 'manual_snapshot' && (
+                                  <span className="px-1.5 py-0.2 rounded-md bg-purple-100 text-purple-800 text-[10px] font-bold flex items-center gap-0.5 shrink-0">
+                                    <BookmarkPlus className="w-2.5 h-2.5 text-purple-600" />
+                                    Saved
                                   </span>
                                 )}
                                 <span className="px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600 text-[10px] font-mono shrink-0 uppercase">
@@ -559,6 +790,19 @@ ${pReport}. Complete sentences. Clear beats short.`;
                             </div>
 
                             <div className="flex items-center gap-1.5 shrink-0">
+                              {versions.length >= 2 && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const otherVer = versions.find(v => v.id !== ver.id);
+                                    handleOpenDiff(otherVer?.id, ver.id);
+                                  }}
+                                  className="p-1 rounded-md text-purple-600 hover:text-purple-800 hover:bg-purple-100 border border-purple-200/60 transition-colors"
+                                  title="Compare with another version"
+                                >
+                                  <GitCompare className="w-3.5 h-3.5" />
+                                </button>
+                              )}
                               {isSelected ? (
                                 <span className="px-2 py-0.5 rounded-full bg-purple-600 text-white text-[10px] font-bold flex items-center gap-1">
                                   <CheckSquare className="w-3 h-3" />
@@ -625,6 +869,192 @@ ${pReport}. Complete sentences. Clear beats short.`;
           </div>
         </div>
       </div>
+
+      {/* Side-by-Side Diff Modal */}
+      {diffMode && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-xs">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-purple-100 text-purple-700">
+                  <SplitSquareVertical className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                    Side-by-Side Prompt Diff Viewer
+                    <span className="text-[11px] font-medium text-slate-500">Compare prompt evolution across versions</span>
+                  </h3>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setDiffMode(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
+                title="Close Diff Viewer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Version Selectors Bar */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-purple-50/30 border-b border-slate-200 text-xs">
+              {/* Left Selector (Original / Baseline) */}
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-rose-700 uppercase tracking-wider text-[10px] shrink-0 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded">
+                  Original (Left)
+                </span>
+                <select
+                  value={diffLeftId}
+                  onChange={(e) => setDiffLeftId(e.target.value)}
+                  className="flex-1 p-1.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs font-medium focus:outline-none focus:border-purple-500"
+                >
+                  {versions.map((v) => (
+                    <option key={`left-${v.id}`} value={v.id}>
+                      {v.label} ({v.framework.toUpperCase()})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Right Selector (Modified / Target) */}
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-emerald-700 uppercase tracking-wider text-[10px] shrink-0 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                  Modified (Right)
+                </span>
+                <select
+                  value={diffRightId}
+                  onChange={(e) => setDiffRightId(e.target.value)}
+                  className="flex-1 p-1.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs font-medium focus:outline-none focus:border-purple-500"
+                >
+                  {versions.map((v) => (
+                    <option key={`right-${v.id}`} value={v.id}>
+                      {v.label} ({v.framework.toUpperCase()})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Diff Columns */}
+            {(() => {
+              const leftVer = versions.find((v) => v.id === diffLeftId) || versions[1] || versions[0];
+              const rightVer = versions.find((v) => v.id === diffRightId) || versions[0];
+              const { leftLines, rightLines } = computeSideBySideDiff(leftVer?.content || '', rightVer?.content || '');
+
+              return (
+                <div className="flex-1 overflow-hidden flex flex-col">
+                  {/* Legend / Stats */}
+                  <div className="px-4 py-2 bg-slate-100/70 border-b border-slate-200 text-[11px] text-slate-600 flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <span className="w-2.5 h-2.5 rounded-xs bg-rose-200 border border-rose-400 inline-block"></span>
+                        Removed / Replaced lines
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="w-2.5 h-2.5 rounded-xs bg-emerald-200 border border-emerald-400 inline-block"></span>
+                        Added / Updated lines
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-slate-500">
+                      <span>Left: {leftVer?.content.length || 0} chars ({leftLines.length} lines)</span>
+                      <span>•</span>
+                      <span>Right: {rightVer?.content.length || 0} chars ({rightLines.length} lines)</span>
+                    </div>
+                  </div>
+
+                  {/* Dual scrolling diff viewer */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 flex-1 overflow-y-auto divide-y md:divide-y-0 md:divide-x divide-slate-200 font-mono text-[11px] leading-relaxed">
+                    {/* Left Panel */}
+                    <div className="bg-slate-900 text-slate-200 p-3 overflow-x-auto min-h-[320px]">
+                      <div className="text-[10px] font-sans font-bold text-slate-400 uppercase tracking-wider mb-2 pb-1 border-b border-slate-800 flex items-center justify-between">
+                        <span>{leftVer?.label || 'Baseline'}</span>
+                        <span className="text-slate-500 font-mono">{leftVer?.framework}</span>
+                      </div>
+                      {leftLines.map((line, idx) => (
+                        <div
+                          key={`l-${idx}`}
+                          className={`flex items-start gap-2 py-0.5 px-1 rounded-xs ${
+                            line.type === 'removed'
+                              ? 'bg-rose-950/80 text-rose-200 border-l-2 border-rose-500'
+                              : line.type === 'empty'
+                              ? 'bg-slate-900/40 text-slate-700 select-none'
+                              : 'text-slate-300'
+                          }`}
+                        >
+                          <span className="text-slate-600 select-none w-6 text-right shrink-0 text-[10px]">
+                            {line.lineNum ?? ''}
+                          </span>
+                          <span className="whitespace-pre-wrap break-all flex-1">
+                            {line.text || (line.type === 'empty' ? ' ' : ' ')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Right Panel */}
+                    <div className="bg-slate-900 text-slate-200 p-3 overflow-x-auto min-h-[320px]">
+                      <div className="text-[10px] font-sans font-bold text-slate-400 uppercase tracking-wider mb-2 pb-1 border-b border-slate-800 flex items-center justify-between">
+                        <span>{rightVer?.label || 'Target'}</span>
+                        <span className="text-slate-500 font-mono">{rightVer?.framework}</span>
+                      </div>
+                      {rightLines.map((line, idx) => (
+                        <div
+                          key={`r-${idx}`}
+                          className={`flex items-start gap-2 py-0.5 px-1 rounded-xs ${
+                            line.type === 'added'
+                              ? 'bg-emerald-950/80 text-emerald-200 border-l-2 border-emerald-500'
+                              : line.type === 'empty'
+                              ? 'bg-slate-900/40 text-slate-700 select-none'
+                              : 'text-slate-300'
+                          }`}
+                        >
+                          <span className="text-slate-600 select-none w-6 text-right shrink-0 text-[10px]">
+                            {line.lineNum ?? ''}
+                          </span>
+                          <span className="whitespace-pre-wrap break-all flex-1">
+                            {line.text || (line.type === 'empty' ? ' ' : ' ')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Modal Footer Actions */}
+                  <div className="p-3 bg-white border-t border-slate-200 flex items-center justify-between flex-wrap gap-2">
+                    <span className="text-xs text-slate-500">
+                      Comparing snapshot <strong className="text-slate-700">{leftVer?.label}</strong> against <strong className="text-slate-700">{rightVer?.label}</strong>
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (rightVer) {
+                            handleSelectVersion(rightVer);
+                            setDiffMode(false);
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-colors"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Load Right Version as Active</span>
+                      </button>
+
+                      <button
+                        onClick={() => setDiffMode(false)}
+                        className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

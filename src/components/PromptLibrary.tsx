@@ -15,11 +15,17 @@ import {
   Bot,
   Layers,
   ArrowUpDown,
-  Code2
+  Code2,
+  BarChart2,
+  CheckSquare,
+  Square,
+  Package
 } from 'lucide-react';
 import { PromptItem, DifficultyLevel, FrameworkType } from '../types';
 import { NICHES_LIST, getNicheMeta } from '../data/niches';
 import { VIBE_AGENTS_CONFIG } from '../data/templates';
+import { PromptMetricsDashboard, getPromptMetrics } from './PromptMetricsDashboard';
+import { BatchExportModal } from './BatchExportModal';
 import {
   getPromptByIndex,
   buildGEPAPrompt,
@@ -38,6 +44,8 @@ interface PromptLibraryProps {
   onUseInAutomation: (prompt: PromptItem) => void;
   onTestInPlayground: (prompt: PromptItem) => void;
   onSelectSkill: (skillId: string) => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
 const ITEMS_PER_PAGE = 30;
@@ -52,18 +60,41 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
   onUseInAutomation,
   onTestInPlayground,
   onSelectSkill,
+  searchQuery: externalSearchQuery,
+  onSearchChange,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [internalSearchQuery, setInternalSearchQuery] = useState('');
+  const searchQuery = externalSearchQuery !== undefined ? externalSearchQuery : internalSearchQuery;
+
+  const setSearchQuery = (val: string) => {
+    setInternalSearchQuery(val);
+    if (onSearchChange) {
+      onSearchChange(val);
+    }
+  };
+
   const [selectedNiche, setSelectedNiche] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [selectedFramework, setSelectedFramework] = useState<string>('all');
   const [selectedVibeAgent, setSelectedVibeAgent] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'downloads' | 'price-asc' | 'price-desc' | 'default'>('default');
   const [showSavedOnly, setShowSavedOnly] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [activeFwTab, setActiveFwTab] = useState<Record<string, 'gepa' | 'fable5' | 'gepaplus' | 'ninestep'>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Reset page when search changes externally
+  useEffect(() => {
+    if (externalSearchQuery !== undefined) {
+      setCurrentPage(1);
+    }
+  }, [externalSearchQuery]);
+
+  // Batch Export selection state
+  const [selectedPromptMap, setSelectedPromptMap] = useState<Record<string, PromptItem>>({});
+  const [isBatchExportOpen, setIsBatchExportOpen] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -181,6 +212,44 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  // Toggle selection for a single prompt
+  const handleToggleSelectPrompt = (prompt: PromptItem, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setSelectedPromptMap(prev => {
+      const next = { ...prev };
+      if (next[prompt.id]) {
+        delete next[prompt.id];
+      } else {
+        next[prompt.id] = prompt;
+      }
+      return next;
+    });
+  };
+
+  // Select all or deselect all prompts on current page
+  const handleToggleSelectCurrentPage = () => {
+    const allPageSelected = currentPagePrompts.length > 0 && currentPagePrompts.every(p => !!selectedPromptMap[p.id]);
+    setSelectedPromptMap(prev => {
+      const next = { ...prev };
+      if (allPageSelected) {
+        currentPagePrompts.forEach(p => delete next[p.id]);
+      } else {
+        currentPagePrompts.forEach(p => {
+          next[p.id] = p;
+        });
+      }
+      return next;
+    });
+  };
+
+  const handleClearSelection = () => {
+    setSelectedPromptMap({});
+  };
+
+  const selectedPromptsList = Object.values(selectedPromptMap);
+  const selectedCount = selectedPromptsList.length;
+  const isAllCurrentPageSelected = currentPagePrompts.length > 0 && currentPagePrompts.every(p => !!selectedPromptMap[p.id]);
+
   const clearAllFilters = () => {
     setSearchQuery('');
     setSelectedNiche('all');
@@ -274,6 +343,40 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
             <span>Saved</span>
           </button>
 
+          {/* Metrics Dashboard Toggle button */}
+          <button
+            onClick={() => setShowDashboard(!showDashboard)}
+            className={`px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs ${
+              showDashboard
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 border-orange-500 text-white shadow-xs'
+                : 'border-slate-200 bg-white text-slate-700 hover:text-orange-600 hover:border-orange-200'
+            }`}
+            title="Toggle Performance Metrics Dashboard"
+          >
+            <BarChart2 className="w-3.5 h-3.5" />
+            <span>Metrics</span>
+          </button>
+
+          {/* Batch Export Button */}
+          <button
+            onClick={() => {
+              if (selectedCount === 0) {
+                // If nothing selected yet, select current page by default
+                handleToggleSelectCurrentPage();
+              }
+              setIsBatchExportOpen(true);
+            }}
+            className={`px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs ${
+              selectedCount > 0
+                ? 'bg-gradient-to-r from-orange-500 to-amber-600 border-orange-500 text-white shadow-xs ring-2 ring-orange-500/20'
+                : 'border-slate-200 bg-white text-slate-700 hover:text-orange-600 hover:border-orange-300'
+            }`}
+            title="Batch Export Selected Prompts"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export {selectedCount > 0 ? `(${selectedCount})` : 'Batch'}</span>
+          </button>
+
           {/* Clear filters button */}
           {hasActiveFilters && (
             <button
@@ -286,6 +389,14 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
           )}
         </div>
       </div>
+
+      {/* Recharts Performance Metrics Dashboard */}
+      {showDashboard && (
+        <PromptMetricsDashboard
+          prompts={promptsPool}
+          savedCount={promptsPool.filter(p => isFavorite(p.id)).length}
+        />
+      )}
 
       {/* 204 Niche Navigation Bar */}
       <div className="relative flex items-center gap-2 mb-6 bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs">
@@ -345,14 +456,63 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
         </button>
       </div>
 
-      {/* Results Header Info */}
-      <div className="flex items-center justify-between text-xs text-slate-500 font-medium mb-4 px-1">
-        <div>
-          Showing <strong className="text-slate-900 font-bold">{promptsPool.length.toLocaleString()}</strong> prompts
-          {selectedNiche !== 'all' && <span> in <strong className="text-orange-600 font-bold">{selectedNiche}</strong></span>}
+      {/* Results Header Info with Select All Page control */}
+      <div className="flex items-center justify-between text-xs text-slate-500 font-medium mb-4 px-1 flex-wrap gap-2">
+        <div className="flex items-center gap-3">
+          <div>
+            Showing <strong className="text-slate-900 font-bold">{promptsPool.length.toLocaleString()}</strong> prompts
+            {selectedNiche !== 'all' && <span> in <strong className="text-orange-600 font-bold">{selectedNiche}</strong></span>}
+            {searchQuery && (
+              <span className="ml-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-100/70 text-orange-800 text-[11px] font-bold">
+                matching "{searchQuery}"
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="hover:text-red-700 ml-0.5 text-xs font-bold leading-none"
+                  title="Clear search filter"
+                >
+                  ✕
+                </button>
+              </span>
+            )}
+          </div>
+
+          {currentPagePrompts.length > 0 && (
+            <div className="flex items-center gap-2 pl-3 border-l border-slate-200">
+              <button
+                onClick={handleToggleSelectCurrentPage}
+                className="flex items-center gap-1.5 font-bold text-slate-700 hover:text-orange-600 transition-colors"
+              >
+                {isAllCurrentPageSelected ? (
+                  <CheckSquare className="w-3.5 h-3.5 text-orange-600" />
+                ) : (
+                  <Square className="w-3.5 h-3.5 text-slate-400" />
+                )}
+                <span>Select Page ({currentPagePrompts.length})</span>
+              </button>
+
+              {selectedCount > 0 && (
+                <button
+                  onClick={handleClearSelection}
+                  className="text-[11px] text-rose-500 hover:text-rose-700 underline font-medium"
+                >
+                  Clear ({selectedCount})
+                </button>
+              )}
+            </div>
+          )}
         </div>
-        <div>
-          Page {currentPage} of {totalPages}
+
+        <div className="flex items-center gap-2">
+          {selectedCount > 0 && (
+            <button
+              onClick={() => setIsBatchExportOpen(true)}
+              className="px-2.5 py-1 rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-800 text-[11px] font-bold flex items-center gap-1 transition-colors"
+            >
+              <Download className="w-3 h-3 text-orange-600" />
+              <span>Export {selectedCount} Selected</span>
+            </button>
+          )}
+          <span>Page {currentPage} of {totalPages}</span>
         </div>
       </div>
 
@@ -396,6 +556,19 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
                   className="p-4 cursor-pointer select-none flex items-start justify-between gap-3 hover:bg-orange-50/20 transition-colors"
                 >
                   <div className="flex items-start gap-3 min-w-0">
+                    {/* Checkbox for batch selection */}
+                    <div
+                      onClick={(e) => handleToggleSelectPrompt(prompt, e)}
+                      className="pt-1 text-slate-400 hover:text-orange-600 transition-colors"
+                      title={selectedPromptMap[prompt.id] ? 'Deselect prompt' : 'Select for batch export'}
+                    >
+                      {selectedPromptMap[prompt.id] ? (
+                        <CheckSquare className="w-4 h-4 text-orange-600" />
+                      ) : (
+                        <Square className="w-4 h-4 hover:border-orange-400" />
+                      )}
+                    </div>
+
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 border"
                       style={{ backgroundColor: `${nicheMeta.color}15`, color: nicheMeta.color, borderColor: `${nicheMeta.color}30` }}
@@ -497,6 +670,35 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
                       {activeTab === 'fable5' && buildFable5Prompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty)}
                       {activeTab === 'gepaplus' && buildGEPAPlusPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty)}
                     </div>
+
+                    {/* Performance Telemetry Strip */}
+                    {(() => {
+                      const pm = getPromptMetrics(prompt);
+                      return (
+                        <div className="mb-3 p-2.5 rounded-xl bg-slate-900 text-slate-200 border border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 bg-orange-950/60 px-2 py-0.5 rounded border border-orange-900/50">
+                              Prompt Telemetry
+                            </span>
+                            <span className="text-slate-400 text-[11px]">Empirical LLM Benchmark</span>
+                          </div>
+                          <div className="flex items-center gap-4 text-[11px] font-mono">
+                            <span className="flex items-center gap-1 text-slate-300">
+                              <span className="text-slate-500">Latency:</span>
+                              <strong className="text-blue-400 font-bold">{pm.latency}ms</strong>
+                            </span>
+                            <span className="flex items-center gap-1 text-slate-300">
+                              <span className="text-slate-500">Success:</span>
+                              <strong className="text-emerald-400 font-bold">{pm.successRate}%</strong>
+                            </span>
+                            <span className="flex items-center gap-1 text-slate-300">
+                              <span className="text-slate-500">Executions:</span>
+                              <strong className="text-amber-400 font-bold">{pm.usageCount.toLocaleString()}</strong>
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Required Skills Section */}
                     <div className="mb-3">
@@ -633,6 +835,17 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
           </button>
         </div>
       )}
+
+      {/* Batch Export Modal */}
+      <BatchExportModal
+        isOpen={isBatchExportOpen}
+        onClose={() => setIsBatchExportOpen(false)}
+        selectedPrompts={selectedPromptsList}
+        onClearSelection={handleClearSelection}
+        onSelectAllPage={handleToggleSelectCurrentPage}
+        isAllPageSelected={isAllCurrentPageSelected}
+        totalPagePromptsCount={currentPagePrompts.length}
+      />
     </div>
   );
 };
