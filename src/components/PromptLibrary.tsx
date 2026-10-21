@@ -19,13 +19,33 @@ import {
   BarChart2,
   CheckSquare,
   Square,
-  Package
+  Package,
+  FileJson,
+  FileCode,
+  Cpu,
+  Sliders,
+  BookOpen,
+  DollarSign,
+  AlertTriangle,
+  Calendar,
+  Share2
 } from 'lucide-react';
 import { PromptItem, DifficultyLevel, FrameworkType } from '../types';
 import { NICHES_LIST, getNicheMeta } from '../data/niches';
 import { VIBE_AGENTS_CONFIG } from '../data/templates';
 import { PromptMetricsDashboard, getPromptMetrics } from './PromptMetricsDashboard';
 import { BatchExportModal } from './BatchExportModal';
+import { EnterpriseAppendixModal } from './EnterpriseAppendixModal';
+import {
+  EXPANSION_NICHES,
+  ALL_EXPANSION_CARDS,
+  ExpandedRolePromptCard
+} from '../data/nichesExpansion';
+import {
+  generatePromptExport,
+  triggerFileDownload,
+  ExportFormat
+} from '../utils/promptExporters';
 import {
   getPromptByIndex,
   buildGEPAPrompt,
@@ -46,6 +66,9 @@ interface PromptLibraryProps {
   onSelectSkill: (skillId: string) => void;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
+  onNavigateToFineTuning?: () => void;
+  selectedNiche?: string;
+  onSelectNiche?: (niche: string) => void;
 }
 
 const ITEMS_PER_PAGE = 30;
@@ -62,6 +85,9 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
   onSelectSkill,
   searchQuery: externalSearchQuery,
   onSearchChange,
+  onNavigateToFineTuning,
+  selectedNiche: externalSelectedNiche,
+  onSelectNiche,
 }) => {
   const [internalSearchQuery, setInternalSearchQuery] = useState('');
   const searchQuery = externalSearchQuery !== undefined ? externalSearchQuery : internalSearchQuery;
@@ -73,7 +99,16 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
     }
   };
 
-  const [selectedNiche, setSelectedNiche] = useState('all');
+  const [internalSelectedNiche, setInternalSelectedNiche] = useState('all');
+  const selectedNiche = externalSelectedNiche !== undefined ? externalSelectedNiche : internalSelectedNiche;
+
+  const setSelectedNiche = (val: string) => {
+    setInternalSelectedNiche(val);
+    if (onSelectNiche) {
+      onSelectNiche(val);
+    }
+  };
+
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [selectedFramework, setSelectedFramework] = useState<string>('all');
   const [selectedVibeAgent, setSelectedVibeAgent] = useState<string>('all');
@@ -84,6 +119,9 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [activeFwTab, setActiveFwTab] = useState<Record<string, 'gepa' | 'fable5' | 'gepaplus' | 'ninestep'>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isAppendixModalOpen, setIsAppendixModalOpen] = useState(false);
+  const [deepModuleTab, setDeepModuleTab] = useState<Record<string, 'plan' | 'mistakes' | 'pricing' | 'pillars'>>({});
+  const [expandedPillarIdx, setExpandedPillarIdx] = useState<Record<string, number | null>>({});
 
   // Reset page when search changes externally
   useEffect(() => {
@@ -92,9 +130,54 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
     }
   }, [externalSearchQuery]);
 
+  // Convert the 48 expansion cards into rich PromptItem objects
+  const expansionPromptItems = useMemo<PromptItem[]>(() => {
+    return ALL_EXPANSION_CARDS.map((card) => {
+      const iconMap: Record<number, string> = {
+        205: '🤖',
+        206: '🥽',
+        207: '🎬',
+        208: '📈',
+        209: '🧬',
+        210: '🌱'
+      };
+      return {
+        id: card.cardId,
+        title: card.title,
+        niche: card.nicheTag,
+        role: card.roleTag,
+        difficulty: card.difficulty,
+        framework: 'GEPA⁺ Unified' as FrameworkType,
+        downloads: 8800 + (card.nicheId * 31) % 950,
+        price: 47,
+        icon: iconMap[card.nicheId] || '✦',
+        gepa: card.frameworks.gepa6Block,
+        fable: card.frameworks.rubenFales5,
+        gepaplus: card.frameworks.gepaPlus,
+        ninestep: card.frameworks.nineStep,
+        prompt: card.frameworks.gepaPlus,
+        expansionCard: card
+      };
+    });
+  }, []);
+
   // Batch Export selection state
   const [selectedPromptMap, setSelectedPromptMap] = useState<Record<string, PromptItem>>({});
   const [isBatchExportOpen, setIsBatchExportOpen] = useState(false);
+  const [exportDropdownPromptId, setExportDropdownPromptId] = useState<string | null>(null);
+
+  // Close card export dropdown on click outside
+  useEffect(() => {
+    if (!exportDropdownPromptId) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.export-menu-container')) {
+        setExportDropdownPromptId(null);
+      }
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [exportDropdownPromptId]);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -119,11 +202,70 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
   };
 
   // Slice generation for selected niche / search filter
-  // We generate a deterministic window of prompts based on filters
   const promptsPool = useMemo(() => {
-    let poolSize = 3000; // ample in-memory pool for smooth rendering & searching
     const pool: PromptItem[] = [];
 
+    // Filter expansion prompts if applicable
+    const isExpansionNicheFilter =
+      selectedNiche === 'expansion' ||
+      [
+        'autonomous ai',
+        'spatial computing',
+        'generative video',
+        'fractional ai',
+        'longevity',
+        'circular economy'
+      ].some(k => selectedNiche.toLowerCase().includes(k));
+
+    if (isExpansionNicheFilter) {
+      const filteredExp = expansionPromptItems.filter(p => {
+        if (selectedNiche !== 'expansion') {
+          const matchNiche =
+            p.niche.toLowerCase().includes(selectedNiche.toLowerCase()) ||
+            selectedNiche.toLowerCase().includes(p.niche.toLowerCase());
+          if (!matchNiche) return false;
+        }
+        if (selectedDifficulty !== 'all' && p.difficulty !== selectedDifficulty) return false;
+        if (selectedFramework !== 'all' && p.framework !== selectedFramework) return false;
+        if (showSavedOnly && !isFavorite(p.id)) return false;
+
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          const match =
+            p.title.toLowerCase().includes(q) ||
+            p.niche.toLowerCase().includes(q) ||
+            p.role.toLowerCase().includes(q);
+          if (!match) return false;
+        }
+        return true;
+      });
+
+      pool.push(...filteredExp);
+      return pool;
+    }
+
+    // When viewing 'all', prepend the expansion prompts first so they are immediately accessible
+    if (selectedNiche === 'all') {
+      const matchingExp = expansionPromptItems.filter(p => {
+        if (selectedDifficulty !== 'all' && p.difficulty !== selectedDifficulty) return false;
+        if (selectedFramework !== 'all' && p.framework !== selectedFramework) return false;
+        if (showSavedOnly && !isFavorite(p.id)) return false;
+
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          const match =
+            p.title.toLowerCase().includes(q) ||
+            p.niche.toLowerCase().includes(q) ||
+            p.role.toLowerCase().includes(q);
+          if (!match) return false;
+        }
+        return true;
+      });
+      pool.push(...matchingExp);
+    }
+
+    // Standard virtual pool generation
+    let poolSize = 3000;
     const nicheIndices: number[] = selectedNiche === 'all'
       ? NICHES_LIST.map((_, i) => i)
       : [NICHES_LIST.indexOf(selectedNiche)].filter(i => i >= 0);
@@ -149,7 +291,7 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
 
       pool.push(prompt);
       idCounter++;
-      if (idCounter >= 1200) break; // Limit pool size for instant responsive rendering
+      if (idCounter >= 1200) break;
     }
 
     // Sort pool
@@ -162,7 +304,16 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
     }
 
     return pool;
-  }, [selectedNiche, selectedDifficulty, selectedFramework, searchQuery, sortBy, showSavedOnly, isFavorite]);
+  }, [
+    selectedNiche,
+    selectedDifficulty,
+    selectedFramework,
+    searchQuery,
+    sortBy,
+    showSavedOnly,
+    isFavorite,
+    expansionPromptItems
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(promptsPool.length / ITEMS_PER_PAGE));
   const currentPagePrompts = useMemo(() => {
@@ -185,31 +336,40 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
 
   const handleCopyPrompt = (prompt: PromptItem, format: 'gepa' | 'fable5' | 'gepaplus' | 'ninestep') => {
     let text = '';
-    if (format === 'gepa') text = buildGEPAPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty);
-    else if (format === 'fable5') text = buildFable5Prompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty);
-    else if (format === 'gepaplus') text = buildGEPAPlusPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty);
-    else text = buildNineStepPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty);
+    if (prompt.expansionCard) {
+      if (format === 'gepa') text = prompt.expansionCard.frameworks.gepa6Block;
+      else if (format === 'fable5') text = prompt.expansionCard.frameworks.rubenFales5;
+      else if (format === 'gepaplus') text = prompt.expansionCard.frameworks.gepaPlus;
+      else text = prompt.expansionCard.frameworks.nineStep;
+    } else {
+      if (format === 'gepa') text = buildGEPAPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty);
+      else if (format === 'fable5') text = buildFable5Prompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty);
+      else if (format === 'gepaplus') text = buildGEPAPlusPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty);
+      else text = buildNineStepPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty);
+    }
 
     onCopy(text, `${prompt.title} (${format.toUpperCase()})`);
     setCopiedId(prompt.id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleExportPrompt = (prompt: PromptItem) => {
-    const gepa = buildGEPAPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty);
-    const fable5 = buildFable5Prompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty);
-    const gepaplus = buildGEPAPlusPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty);
-    const ninestep = buildNineStepPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty);
+  const handleQuickExportPrompt = (
+    prompt: PromptItem,
+    exportFormat: ExportFormat,
+    frameworkTab?: 'gepa' | 'fable5' | 'gepaplus' | 'ninestep'
+  ) => {
+    onAddToHistory(prompt);
+    const result = generatePromptExport([prompt], {
+      format: exportFormat,
+      framework: frameworkTab || 'ninestep',
+      includeMetadata: true
+    });
+    triggerFileDownload(result.content, result.filename, result.mimeType);
+    setExportDropdownPromptId(null);
+  };
 
-    const fullText = `PROMPT: ${prompt.title}\nNICHE: ${prompt.niche}\nROLE: ${prompt.role}\nDIFFICULTY: ${prompt.difficulty}\n\n${'═'.repeat(50)}\nGEPA 6-BLOCK FORMAT\n${'═'.repeat(50)}\n${gepa}\n\n${'═'.repeat(50)}\nRUBEN HASSID FABLE 5 FORMAT\n${'═'.repeat(50)}\n${fable5}\n\n${'═'.repeat(50)}\nGEPA⁺ UNIFIED FRAMEWORK\n${'═'.repeat(50)}\n${gepaplus}\n\n${'═'.repeat(50)}\n9-STEP COGNITIVE MEDIATION & CAUSAL GOVERNANCE\n${'═'.repeat(50)}\n${ninestep}`;
-
-    const blob = new Blob([fullText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${prompt.title.replace(/[^a-z0-9]/gi, '_')}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExportPrompt = (prompt: PromptItem, frameworkTab?: 'gepa' | 'fable5' | 'gepaplus' | 'ninestep') => {
+    handleQuickExportPrompt(prompt, 'yaml_local', frameworkTab);
   };
 
   // Toggle selection for a single prompt
@@ -377,6 +537,16 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
             <span>Export {selectedCount > 0 ? `(${selectedCount})` : 'Batch'}</span>
           </button>
 
+          {/* Enterprise Appendix button */}
+          <button
+            onClick={() => setIsAppendixModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-900 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            title="Open Global Enterprise Appendix with Outreach, Pricing, and Contract Blueprints"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-orange-600" />
+            <span>Enterprise Appendix</span>
+          </button>
+
           {/* Clear filters button */}
           {hasActiveFilters && (
             <button
@@ -398,7 +568,7 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
         />
       )}
 
-      {/* 204 Niche Navigation Bar */}
+      {/* 210 Niche Navigation Bar */}
       <div className="relative flex items-center gap-2 mb-6 bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs">
         <button
           onClick={() => scrollNiches('left')}
@@ -424,6 +594,21 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
             <span>✦ All</span>
             <span className={`text-[10px] px-1.5 py-0.2 rounded-md ${selectedNiche === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
               100K
+            </span>
+          </button>
+
+          {/* 6 Enterprise Expansion Niches quick pill */}
+          <button
+            onClick={() => { setSelectedNiche('expansion'); setCurrentPage(1); }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+              selectedNiche === 'expansion'
+                ? 'bg-gradient-to-r from-orange-600 via-red-600 to-rose-600 text-white shadow-xs font-black'
+                : 'border border-orange-300 bg-orange-50/70 text-orange-900 hover:bg-orange-100 hover:border-orange-400'
+            }`}
+          >
+            <span>✨ 6 Enterprise Niches (205–210)</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-md ${selectedNiche === 'expansion' ? 'bg-white/20 text-white' : 'bg-orange-200/80 text-orange-900 font-bold'}`}>
+              48 Cards
             </span>
           </button>
 
@@ -665,11 +850,141 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
 
                     {/* Prompt Box */}
                     <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs font-mono text-slate-800 leading-relaxed whitespace-pre-wrap max-h-72 overflow-y-auto shadow-inner mb-3">
-                      {activeTab === 'ninestep' && buildNineStepPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty)}
-                      {activeTab === 'gepa' && buildGEPAPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty)}
-                      {activeTab === 'fable5' && buildFable5Prompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty)}
-                      {activeTab === 'gepaplus' && buildGEPAPlusPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty)}
+                      {activeTab === 'ninestep' && (prompt.expansionCard?.frameworks.nineStep || buildNineStepPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty))}
+                      {activeTab === 'gepa' && (prompt.expansionCard?.frameworks.gepa6Block || buildGEPAPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty))}
+                      {activeTab === 'fable5' && (prompt.expansionCard?.frameworks.rubenFales5 || buildFable5Prompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty))}
+                      {activeTab === 'gepaplus' && (prompt.expansionCard?.frameworks.gepaPlus || buildGEPAPlusPrompt(prompt.title, prompt.niche, prompt.role, prompt.difficulty))}
                     </div>
+
+                    {/* Deep Operational Modules (If Expansion Card) */}
+                    {prompt.expansionCard && (
+                      <div className="mb-4 rounded-2xl bg-white border border-orange-200/90 p-3.5 shadow-xs">
+                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2 pb-2 border-b border-orange-100">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-600 to-red-600 text-white">
+                              Deep Operational Module
+                            </span>
+                            <span className="text-xs font-bold text-slate-800">
+                              Production Runbook & Revenue Architecture
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => setIsAppendixModalOpen(true)}
+                            className="text-[11px] font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 cursor-pointer"
+                          >
+                            <BookOpen className="w-3.5 h-3.5" />
+                            <span>View Enterprise Appendix</span>
+                          </button>
+                        </div>
+
+                        {/* Module Sub-Tabs */}
+                        <div className="flex items-center gap-1.5 mb-3 overflow-x-auto no-scrollbar">
+                          {[
+                            { key: 'plan', label: '📅 7-Day Plan', count: prompt.expansionCard.deepModules.fastStart7DayPlan.length },
+                            { key: 'mistakes', label: '⚠️ 5 Costly Mistakes', count: prompt.expansionCard.deepModules.commonMistakes.length },
+                            { key: 'pricing', label: '💰 Pricing (USD)', count: prompt.expansionCard.deepModules.pricingPackaging.length },
+                            { key: 'pillars', label: '🚀 5 Content Pillars', count: '50 Examples' }
+                          ].map((t) => {
+                            const curTab = deepModuleTab[prompt.id] || 'plan';
+                            const isActive = curTab === t.key;
+                            return (
+                              <button
+                                key={t.key}
+                                onClick={() => setDeepModuleTab(prev => ({ ...prev, [prompt.id]: t.key as any }))}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                                  isActive
+                                    ? 'bg-orange-600 text-white shadow-xs'
+                                    : 'bg-slate-50 text-slate-700 hover:bg-orange-50 hover:text-orange-600 border border-slate-200'
+                                }`}
+                              >
+                                <span>{t.label}</span>
+                                <span className={`text-[10px] ml-1.5 px-1.5 py-0.2 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200/70 text-slate-600'}`}>
+                                  {t.count}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Sub-Tab 1: 7-Day Plan */}
+                        {(deepModuleTab[prompt.id] || 'plan') === 'plan' && (
+                          <div className="space-y-2 text-xs">
+                            {prompt.expansionCard.deepModules.fastStart7DayPlan.map((step: string, sIdx: number) => (
+                              <div key={sIdx} className="p-2 rounded-xl bg-orange-50/40 border border-orange-100 flex items-start gap-2 text-slate-800">
+                                <span className="w-5 h-5 rounded-full bg-orange-600 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
+                                  {sIdx + 1}
+                                </span>
+                                <span className="leading-relaxed">{step}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Sub-Tab 2: 5 Common Mistakes */}
+                        {(deepModuleTab[prompt.id] || 'plan') === 'mistakes' && (
+                          <div className="space-y-2 text-xs">
+                            {prompt.expansionCard.deepModules.commonMistakes.map((mistake: string, mIdx: number) => (
+                              <div key={mIdx} className="p-2.5 rounded-xl bg-rose-50/50 border border-rose-200/80 flex items-start gap-2 text-rose-950">
+                                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                                <span className="leading-relaxed font-medium">{mistake}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Sub-Tab 3: Pricing & Packaging */}
+                        {(deepModuleTab[prompt.id] || 'plan') === 'pricing' && (
+                          <div className="space-y-2 text-xs">
+                            {prompt.expansionCard.deepModules.pricingPackaging.map((tier: string, tIdx: number) => (
+                              <div key={tIdx} className="p-3 rounded-xl bg-emerald-50/50 border border-emerald-200/80 flex items-start gap-2.5 text-emerald-950">
+                                <DollarSign className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                                <div className="leading-relaxed font-mono font-medium">{tier}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Sub-Tab 4: Content Pillars & 50 Viral Examples */}
+                        {(deepModuleTab[prompt.id] || 'plan') === 'pillars' && (
+                          <div className="space-y-2 text-xs">
+                            {prompt.expansionCard.deepModules.contentPillars.map((pillar: any, pIdx: number) => {
+                              const isPillarOpen = expandedPillarIdx[prompt.id] === pIdx;
+                              return (
+                                <div key={pIdx} className="rounded-xl border border-slate-200 overflow-hidden">
+                                  <button
+                                    onClick={() => setExpandedPillarIdx(prev => ({ ...prev, [prompt.id]: isPillarOpen ? null : pIdx }))}
+                                    className="w-full p-2.5 bg-slate-50 hover:bg-orange-50/60 flex items-center justify-between text-left font-bold text-slate-800 transition-colors cursor-pointer"
+                                  >
+                                    <span className="flex items-center gap-1.5">
+                                      <span className="text-orange-600">✦</span>
+                                      <span>{pillar.pillarName}</span>
+                                    </span>
+                                    <span className="text-[11px] font-mono text-slate-500">
+                                      {pillar.examples.length} Hooks {isPillarOpen ? '▲' : '▼'}
+                                    </span>
+                                  </button>
+                                  {isPillarOpen && (
+                                    <div className="p-2.5 bg-white space-y-1.5 border-t border-slate-200">
+                                      {pillar.examples.map((ex: string, exIdx: number) => (
+                                        <div key={exIdx} className="flex items-center justify-between gap-2 p-1.5 rounded-lg hover:bg-slate-50 text-slate-700">
+                                          <span className="leading-relaxed">• {ex}</span>
+                                          <button
+                                            onClick={() => onCopy(ex, `${pillar.pillarName} Hook`)}
+                                            className="px-2 py-0.5 rounded bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-bold shrink-0 transition-colors cursor-pointer"
+                                          >
+                                            Copy
+                                          </button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Performance Telemetry Strip */}
                     {(() => {
@@ -742,13 +1057,95 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
                           <span>{isFavorite(prompt.id) ? 'Saved' : 'Save'}</span>
                         </button>
 
-                        <button
-                          onClick={() => handleExportPrompt(prompt)}
-                          className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:border-orange-400 hover:text-orange-600 flex items-center gap-1.5 transition-colors shadow-2xs"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Export</span>
-                        </button>
+                        {/* Export Menu Dropdown */}
+                        <div className="relative export-menu-container">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExportDropdownPromptId(exportDropdownPromptId === prompt.id ? null : prompt.id);
+                            }}
+                            className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:border-orange-400 hover:text-orange-600 dark:hover:text-orange-400 flex items-center gap-1.5 transition-colors shadow-2xs"
+                            title="Export prompt to JSON or YAML"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Export</span>
+                          </button>
+
+                          {exportDropdownPromptId === prompt.id && (
+                            <div className="absolute left-0 sm:left-auto sm:right-0 bottom-full mb-1.5 w-60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl p-1.5 z-40 animate-in fade-in zoom-in-95 duration-100 text-xs">
+                              <div className="px-2 py-1 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                                Local Storage & Configs
+                              </div>
+                              <button
+                                onClick={() => handleQuickExportPrompt(prompt, 'json_full', activeTab)}
+                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-orange-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium transition-colors text-left"
+                              >
+                                <FileJson className="w-3.5 h-3.5 text-blue-500" />
+                                <div>
+                                  <div className="font-bold">Export JSON (.json)</div>
+                                  <div className="text-[10px] text-slate-400">Structured prompt object</div>
+                                </div>
+                              </button>
+                              <button
+                                onClick={() => handleQuickExportPrompt(prompt, 'yaml_local', activeTab)}
+                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-orange-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium transition-colors text-left"
+                              >
+                                <FileCode className="w-3.5 h-3.5 text-emerald-500" />
+                                <div>
+                                  <div className="font-bold">Export YAML (.yaml)</div>
+                                  <div className="text-[10px] text-slate-400">Clean YAML 1.2 manifest</div>
+                                </div>
+                              </button>
+
+                              <div className="px-2 py-1 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider mt-1 border-t border-slate-100 dark:border-slate-800 pt-1.5">
+                                LLM Fine-Tuning Datasets
+                              </div>
+                              <button
+                                onClick={() => handleQuickExportPrompt(prompt, 'jsonl_chatml', activeTab)}
+                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-orange-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium transition-colors text-left"
+                              >
+                                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                                <div>
+                                  <div className="font-bold">ChatML / OpenAI (.jsonl)</div>
+                                  <div className="text-[10px] text-slate-400">System/User/Assistant turn</div>
+                                </div>
+                              </button>
+                              <button
+                                onClick={() => handleQuickExportPrompt(prompt, 'json_alpaca', activeTab)}
+                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-orange-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium transition-colors text-left"
+                              >
+                                <Cpu className="w-3.5 h-3.5 text-purple-500" />
+                                <div>
+                                  <div className="font-bold">Alpaca Dataset (.json)</div>
+                                  <div className="text-[10px] text-slate-400">Instruction-Input-Output</div>
+                                </div>
+                              </button>
+                              <button
+                                onClick={() => handleQuickExportPrompt(prompt, 'yaml_dataset', activeTab)}
+                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-orange-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium transition-colors text-left"
+                              >
+                                <FileCode className="w-3.5 h-3.5 text-purple-400" />
+                                <div>
+                                  <div className="font-bold">Fine-Tuning YAML (.yaml)</div>
+                                  <div className="text-[10px] text-slate-400">Axolotl / Ollama format</div>
+                                </div>
+                              </button>
+
+                              <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+                              <button
+                                onClick={() => {
+                                  setSelectedPromptMap((prev) => ({ ...prev, [prompt.id]: prompt }));
+                                  setIsBatchExportOpen(true);
+                                  setExportDropdownPromptId(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-orange-100/70 dark:hover:bg-orange-950/50 text-orange-700 dark:text-orange-400 font-bold transition-colors text-left"
+                              >
+                                <Sliders className="w-3.5 h-3.5 text-orange-600" />
+                                <span>Batch / Custom Export...</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Advanced Tool Shortcuts */}
@@ -845,6 +1242,14 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
         onSelectAllPage={handleToggleSelectCurrentPage}
         isAllPageSelected={isAllCurrentPageSelected}
         totalPagePromptsCount={currentPagePrompts.length}
+        onNavigateToFineTuning={onNavigateToFineTuning}
+      />
+
+      {/* Global Enterprise Appendix Modal */}
+      <EnterpriseAppendixModal
+        isOpen={isAppendixModalOpen}
+        onClose={() => setIsAppendixModalOpen(false)}
+        onCopy={onCopy}
       />
     </div>
   );

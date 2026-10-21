@@ -38,6 +38,7 @@ export interface PromptItem {
   prompt?: string;
   skills?: SkillItem[];
   vibeAgent?: string;
+  expansionCard?: any;
 }
 
 export interface SkillItem {

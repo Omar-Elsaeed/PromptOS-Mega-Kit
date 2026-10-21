@@ -406,7 +406,7 @@ ${pReport}. Complete sentences. Clear beats short.`;
               <>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Select Niche (204 Available)
+                    Select Niche (210 Available)
                   </label>
                   <select
                     value={qNiche}

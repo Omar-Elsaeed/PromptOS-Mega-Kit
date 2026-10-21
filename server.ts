@@ -53,31 +53,47 @@ async function startServer() {
     '</dns-query>; rel="dns-query"',
     '</>; rel="alternate"; type="text/markdown"'
   ];
+  const AGENT_LINK_HEADER_VALUE = AGENT_LINK_HEADERS.join(", ");
 
-  // Global middleware: inject RFC 8288 Link headers on homepage, HTML responses, and root
+  // Global middleware: inject RFC 8288 Link headers on homepage, HTML responses, root, and agent endpoints
   app.use((req, res, next) => {
     const p = req.path;
-    const isHtmlRoute =
-      p === "/" ||
-      p === "/index.html" ||
-      p === "" ||
-      !p.includes(".") ||
-      (req.headers.accept && req.headers.accept.includes("text/html"));
+    const isStaticAsset = /\.(js|mjs|css|map|svg|png|jpg|jpeg|webp|gif|ico|woff|woff2|ttf|eot|wasm)$/i.test(p);
 
-    if (isHtmlRoute && (req.method === "GET" || req.method === "HEAD")) {
-      res.setHeader("Link", AGENT_LINK_HEADERS);
+    if (!isStaticAsset && (req.method === "GET" || req.method === "HEAD")) {
+      res.setHeader("Link", AGENT_LINK_HEADER_VALUE);
 
       const origWriteHead = res.writeHead;
       res.writeHead = function (this: any, statusCode: number, ...args: any[]) {
         try {
           if (!this.getHeader("Link")) {
-            this.setHeader("Link", AGENT_LINK_HEADERS);
+            this.setHeader("Link", AGENT_LINK_HEADER_VALUE);
           }
         } catch {}
         return origWriteHead.call(this, statusCode, ...args);
       };
     }
     next();
+  });
+
+  // Explicit handler for /__cookie_check.html and /__cookie_check (preview auth proxy)
+  app.all(["/__cookie_check.html", "/__cookie_check"], async (req, res, next) => {
+    res.setHeader("Link", AGENT_LINK_HEADER_VALUE);
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+
+    if (req.method === "HEAD") {
+      return res.status(200).end();
+    }
+
+    try {
+      const distIndex = path.join(process.cwd(), "dist", "index.html");
+      const rootIndex = path.join(process.cwd(), "index.html");
+      const targetIndex = fs.existsSync(distIndex) ? distIndex : rootIndex;
+      const html = fs.readFileSync(targetIndex, "utf-8");
+      return res.status(200).send(html);
+    } catch {
+      next();
+    }
   });
 
   // Intercept GET/HEAD requests requesting text/markdown (Markdown for Agents per llmstxt.org and Cloudflare)
@@ -114,7 +130,7 @@ async function startServer() {
       res.setHeader("x-markdown-tokens", tokens.toString());
       res.setHeader("Vary", "Accept");
       res.setHeader("Content-Signal", "ai-train=yes, search=yes, ai-input=yes");
-      res.setHeader("Link", AGENT_LINK_HEADERS);
+      res.setHeader("Link", AGENT_LINK_HEADER_VALUE);
       res.setHeader("Access-Control-Allow-Origin", "*");
 
       if (req.method === "HEAD") {
@@ -2517,13 +2533,13 @@ ${commonFooter}`;
   if (!isDev && hasDist) {
     app.use(express.static(distPath, {
       setHeaders: (res, filePath) => {
-        if (filePath.endsWith("index.html") || filePath.endsWith("/")) {
-          res.setHeader("Link", AGENT_LINK_HEADERS);
+        if (filePath.endsWith("index.html") || filePath.endsWith("/") || filePath.endsWith(".html")) {
+          res.setHeader("Link", AGENT_LINK_HEADER_VALUE);
         }
       }
     }));
     app.get("*", (_req, res) => {
-      res.setHeader("Link", AGENT_LINK_HEADERS);
+      res.setHeader("Link", AGENT_LINK_HEADER_VALUE);
       res.sendFile(path.join(distPath, "index.html"));
     });
   } else {

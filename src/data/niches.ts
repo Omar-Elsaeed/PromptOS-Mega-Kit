@@ -34,10 +34,169 @@ export const NICHES_LIST: string[] = [
   "Curriculum Design", "Corporate L&D", "Speech Therapy", "Physical Therapy",
   "Nutrition Science", "Biotech", "Pharmaceutical Marketing", "Clinical Research", "MedTech",
   "Interior Architecture", "Landscape Design", "Civil Engineering",
-  "Platform Engineering", "Data Engineering"
+  "Platform Engineering", "Data Engineering",
+  // Intermediate niches bridging to 204
+  "Generative AI", "Prompt Engineering", "Quantum Computing", "Synthetic Biology",
+  "Robotic Process Automation", "Wearable Technology", "Autonomous Driving", "Algorithmic Trading",
+  "Climate Tech", "Industrial Automation", "Bioinformatics", "Neurotechnology",
+  "Smart Cities", "Cyber Threat Intelligence", "Edge AI", "Microservices & Distributed Systems",
+  "Natural Language Processing", "Computer Vision", "Knowledge Graphs",
+  // ==========================================
+  // 6 NEW HIGH-TICKET EXPANSION NICHES (205–210)
+  // ==========================================
+  "Autonomous AI AgentOps",
+  "Spatial Computing & VisionOS",
+  "Generative Video & Synthetic Media",
+  "Fractional AI CGO & RevOps",
+  "Longevity & Precision Medicine",
+  "Circular Economy & Carbon Accounting"
 ];
 
 export const NICHE_DETAILS: Record<string, { emoji: string; color: string; roles: string[]; topics: string[] }> = {
+  "Autonomous AI AgentOps": {
+    emoji: "🤖",
+    color: "#E85D26",
+    roles: [
+      "Multi-Agent System Architect",
+      "Autonomous Agent Security & Red-Teaming Specialist",
+      "Agentic Workflow Evaluation & LLM Benchmark Lead",
+      "Human-in-the-Loop (HITL) Workflow Designer",
+      "Autonomous Agent FinOps Analyst",
+      "Agentic State & Memory Systems Lead",
+      "Multi-Agent Consensus Protocol Designer",
+      "Agent Tooling & Sandboxed Runtime Specialist"
+    ],
+    topics: [
+      "Fault-Tolerant Swarm Orchestration",
+      "Adversarial Prompt Injection Defense",
+      "Synthetic LLM-as-a-Judge Evaluation",
+      "HITL Escalation Gates & Runbooks",
+      "Token Quota & FinOps Circuit Breakers",
+      "Hierarchical Long-Term Vector Memory",
+      "Quorum Arbitration & Consensus",
+      "Hardened MicroVM Sandboxing"
+    ]
+  },
+  "Spatial Computing & VisionOS": {
+    emoji: "🥽",
+    color: "#FF7A3D",
+    roles: [
+      "Spatial UI/UX Architect (VisionOS)",
+      "Industrial Digital Twin Simulation Engineer",
+      "Volumetric Data Visualization Designer",
+      "Spatial Audio & Psychoacoustic Specialist",
+      "Eye-Tracking & Gaze Intent Engineer",
+      "Digital Twin Spatial Asset Modeler",
+      "Mixed-Reality Enterprise Workflow Lead",
+      "Spatial Ergonomics & Biomechanics Auditor"
+    ],
+    topics: [
+      "Gaze-Pinch Spatial Interaction Hierarchy",
+      "Real-Time IoT USDZ Digital Twin",
+      "Volumetric Financial & Data Surfaces",
+      "HRTF Distance Attenuation Calibration",
+      "Foveated Predictive Intent & Gaze Heatmaps",
+      "CAD-to-Reality 90 FPS Asset Optimization",
+      "Remote Collaborative Spatial Inspection",
+      "ISO 9241 Visual Fatigue Audits"
+    ]
+  },
+  "Generative Video & Synthetic Media": {
+    emoji: "🎬",
+    color: "#E85D26",
+    roles: [
+      "Generative Video Director & Prompt Cinematographer",
+      "Neural Voice Cloning & Audio Synthesis Producer",
+      "Multimodal Storyboard & Concept Artist",
+      "Diffusion Model Fine-Tuning & LoRA Specialist",
+      "Real-Time Virtual Production & NeRF Engineer",
+      "AI Motion Capture & Character Rigging Artist",
+      "Synthetic Media Ethical Compliance & Provenance Auditor",
+      "Commercial Generative Video Pipeline Lead"
+    ],
+    topics: [
+      "Temporal Consistency & Multi-Shot Directing",
+      "Multilingual Voice Cloning & Dynamic Stems",
+      "Parametric Shot Storyboard Generation",
+      "Identity LoRA 4K Weight Fine-Tuning",
+      "3D Gaussian Splatting for LED Volumes",
+      "Markerless Monocular Motion Capture",
+      "C2PA Cryptographic Provenance Manifests",
+      "Headless Batch Video Inference Workflows"
+    ]
+  },
+  "Fractional AI CGO & RevOps": {
+    emoji: "📈",
+    color: "#f59e0b",
+    roles: [
+      "Fractional Chief Growth Officer (CGO)",
+      "AI-Driven Revenue Operations (RevOps) Architect",
+      "Predictive ICP & Customer Lifetime Value Modeler",
+      "Automated Lead Enrichment & Intent Signal Engineer",
+      "B2B Multichannel Inbound/Outbound Engine Orchestrator",
+      "Self-Healing Sales Pipeline & Forecasting Lead",
+      "PLG-to-Sales Assisted Conversion Specialist",
+      "Growth Loop Experimentation & Rapid Prototyping Lead"
+    ],
+    topics: [
+      "90-Day AI-Native GTM & Revenue Acceleration",
+      "Automated CRM Pipeline Health & Deal Scoring",
+      "Predictive Churn & Expansion Propensity Models",
+      "Multi-Vendor Intent Scraping & Waterfall Enrichment",
+      "Hyper-Personalized Multichannel B2B Sequences",
+      "Monte Carlo Predictive Sales Forecasting",
+      "PLG Usage Triggers & Sales-Assisted Workflows",
+      "High-Velocity Growth Experimentation Cadences"
+    ]
+  },
+  "Longevity & Precision Medicine": {
+    emoji: "🧬",
+    color: "#10b981",
+    roles: [
+      "Epigenetic Age & Biological Clock Biomarker Analyst",
+      "Concierge Longevity Protocol Designer",
+      "Multi-Omic Diagnostics & Continuous Biometric Telemetry Lead",
+      "Mitochondrial Function & NAD+ Restoration Specialist",
+      "Microbiome & Targeted Metabolomic Profiling Lead",
+      "Precision N-of-1 Pharmacogenomics & Nutrigenomics Consultant",
+      "Hyperbaric Oxygen & Photobiomodulation Protocol Designer",
+      "Longevity Clinic Operations & Concierge Diagnostics Director"
+    ],
+    topics: [
+      "DNA Methylation & Epigenetic Pace of Aging",
+      "Multi-Modal Healthspan Optimization Roadmaps",
+      "Harmonized Continuous Glucose & HRV Telemetry",
+      "Mitochondrial Biogenesis & NAD+ Therapeutics",
+      "Shotgun Metagenomics & Metabolomic Pathways",
+      "Cytochrome P450 Drug Metabolism & SNPs",
+      "HBOT & Transcranial Photobiomodulation",
+      "High-Net-Worth Concierge Diagnostics SOPs"
+    ]
+  },
+  "Circular Economy & Carbon Accounting": {
+    emoji: "🌱",
+    color: "#059669",
+    roles: [
+      "Scope 1-3 Corporate GHG Protocol Carbon Accounting Lead",
+      "Digital Product Passport (DPP) & EU ESPR Traceability Architect",
+      "Circular Product Life-Cycle Assessment (LCA) & Cradle-to-Cradle Engineer",
+      "Corporate CSRD & ESRS Double Materiality Disclosure Director",
+      "Supply Chain Deforestation & Scope 3 Upstream Traceability Auditor",
+      "Industrial Symbiosis & Closed-Loop Byproduct Valorization Strategist",
+      "Voluntary Carbon Market (VCM) & High-Integrity Credit Verification Specialist",
+      "Circular Business Model Transition & Take-Back Reverse Logistics Lead"
+    ],
+    topics: [
+      "Scope 1-3 GHG Corporate Emissions Accounting",
+      "GS1-Compliant Digital Product Passports (DPP)",
+      "ISO 14040/44 Cradle-to-Cradle Life-Cycle Assessment",
+      "EU CSRD & ESRS Double Materiality Assessments",
+      "EUDR Satellite Deforestation Traceability",
+      "Cross-Sector Industrial Byproduct Exchange",
+      "Core Carbon Principles & CDR Verification",
+      "Product-as-a-Service Reverse Logistics Take-Back"
+    ]
+  },
   "Marketing": {
     emoji: "📢",
     color: "#3b82f6",

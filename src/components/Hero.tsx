@@ -5,9 +5,10 @@ interface HeroProps {
   onQuickStart: () => void;
   onExploreFable5: () => void;
   onOpenTour?: () => void;
+  onSelectNiche?: (niche: string) => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpenTour }) => {
+export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpenTour, onSelectNiche }) => {
   const fableBlocks = [
     { num: '①', name: 'Task' },
     { num: '②', name: 'Context' },
@@ -22,6 +23,15 @@ export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpe
     { num: '⑪', name: 'Report' }
   ];
 
+  const expansionNiches = [
+    { id: 205, name: 'Autonomous AI AgentOps', icon: '🤖', badge: 'Swarm Ops' },
+    { id: 206, name: 'Spatial Computing & VisionOS', icon: '🥽', badge: 'VisionOS' },
+    { id: 207, name: 'Generative Video & Synthetic Media', icon: '🎬', badge: 'NeRFs & Splatting' },
+    { id: 208, name: 'Fractional AI CGO & RevOps', icon: '📈', badge: 'RevOps' },
+    { id: 209, name: 'Longevity & Precision Medicine', icon: '🧬', badge: 'Healthspan' },
+    { id: 210, name: 'Circular Economy & Carbon Accounting', icon: '🌱', badge: 'ESG & CSRD' }
+  ];
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-orange-50/50 via-white to-white border-b border-orange-500/10 py-14 sm:py-18 px-4 sm:px-6">
       {/* Background glow accents */}
@@ -32,7 +42,7 @@ export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpe
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-orange-200/80 shadow-xs text-xs font-bold text-orange-700 mb-6">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
           <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500/20" />
-          <span>Ultra-Modern Edition · 100K Prompts · 204 Niches · Fable 5 & GEPA⁺</span>
+          <span>Ultra-Modern Edition · 100K Prompts · 210 Niches · 4 Production Frameworks</span>
         </div>
 
         {/* Main Heading */}
@@ -46,7 +56,8 @@ export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpe
 
         {/* Subtitle */}
         <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed mb-8 font-normal">
-          Enterprise prompt engineering across 204 niches, 2,740 expert roles, and 3 production frameworks:{' '}
+          Enterprise prompt engineering across 210 niches, 2,788 expert roles, and 4 production frameworks:{' '}
+          <strong className="text-slate-900 font-bold">9-Step Cognitive Mediation</strong>,{' '}
           <strong className="text-slate-900 font-bold">GEPA 6-Block</strong>,{' '}
           <strong className="text-slate-900 font-bold">Ruben Hassid Fable 5 (11-Block)</strong>, and{' '}
           <strong className="text-slate-900 font-bold">GEPA⁺ Unified</strong>.
@@ -56,7 +67,7 @@ export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpe
         <div className="flex items-center justify-center gap-3 flex-wrap mb-10">
           <button
             onClick={onQuickStart}
-            className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-red-500 to-rose-600 hover:from-orange-600 hover:to-red-600 text-white font-bold text-sm shadow-lg shadow-orange-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center gap-2"
+            className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-red-500 to-rose-600 hover:from-orange-600 hover:to-red-600 text-white font-bold text-sm shadow-lg shadow-orange-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center gap-2 cursor-pointer"
           >
             <Zap className="w-4 h-4 fill-white" />
             <span>Launch Smart Builder</span>
@@ -64,14 +75,14 @@ export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpe
           </button>
           <button
             onClick={onExploreFable5}
-            className="px-6 py-3.5 rounded-xl bg-white hover:bg-orange-50/50 border border-slate-200 hover:border-orange-300 text-slate-800 font-bold text-sm shadow-xs transition-all"
+            className="px-6 py-3.5 rounded-xl bg-white hover:bg-orange-50/50 border border-slate-200 hover:border-orange-300 text-slate-800 font-bold text-sm shadow-xs transition-all cursor-pointer"
           >
             Explore Fable 5 Anatomy
           </button>
           {onOpenTour && (
             <button
               onClick={onOpenTour}
-              className="px-5 py-3.5 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 border border-orange-200/90 text-orange-800 font-bold text-sm shadow-xs transition-all flex items-center gap-2 group"
+              className="px-5 py-3.5 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 border border-orange-200/90 text-orange-800 font-bold text-sm shadow-xs transition-all flex items-center gap-2 group cursor-pointer"
             >
               <Compass className="w-4 h-4 text-orange-600 group-hover:rotate-45 transition-transform" />
               <span>Feature Tour</span>
@@ -89,9 +100,12 @@ export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpe
               Prompts
             </div>
           </div>
-          <div className="bg-orange-50/40 p-3.5 rounded-xl border border-orange-100 text-center">
-            <div className="text-2xl sm:text-3xl font-black text-orange-600 tracking-tight">
-              204
+          <div className="bg-orange-50/40 p-3.5 rounded-xl border border-orange-100 text-center relative group">
+            <div className="text-2xl sm:text-3xl font-black text-orange-600 tracking-tight flex items-center justify-center gap-1.5">
+              <span>210</span>
+              <span className="text-[10px] font-black px-1.5 py-0.5 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-full tracking-normal uppercase">
+                +6 NEW
+              </span>
             </div>
             <div className="text-[10px] text-orange-700/80 uppercase tracking-widest font-extrabold mt-1">
               Niches
@@ -99,7 +113,7 @@ export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpe
           </div>
           <div className="bg-orange-50/40 p-3.5 rounded-xl border border-orange-100 text-center">
             <div className="text-2xl sm:text-3xl font-black text-red-600 tracking-tight">
-              3
+              4
             </div>
             <div className="text-[10px] text-red-700/80 uppercase tracking-widest font-extrabold mt-1">
               Frameworks
@@ -112,6 +126,38 @@ export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpe
             <div className="text-[10px] text-rose-700/80 uppercase tracking-widest font-extrabold mt-1">
               AI Tools
             </div>
+          </div>
+        </div>
+
+        {/* 6 New High-Ticket Niches Quick Jump Pill Bar */}
+        <div className="mb-7 p-3 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-rose-500/10 border border-orange-200/70 text-left">
+          <div className="flex items-center justify-between mb-2 px-1 flex-wrap gap-2">
+            <span className="text-[11px] font-black uppercase tracking-wider text-orange-900 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-orange-600 animate-ping" />
+              ✨ Newly Added Enterprise Niches (IDs 205–210 · 48 Complete Role Cards):
+            </span>
+            <span className="text-[10px] text-orange-700 font-semibold">
+              Includes 4 Frameworks + Deep Modules + Global Appendix
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+            {expansionNiches.map((n) => (
+              <button
+                key={n.id}
+                onClick={() => onSelectNiche?.(n.name)}
+                className="flex items-center gap-2 p-2 rounded-xl bg-white border border-orange-200/80 hover:border-orange-500 hover:shadow-xs hover:bg-orange-50/50 transition-all text-left cursor-pointer group"
+              >
+                <span className="text-lg">{n.icon}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] font-bold text-slate-800 group-hover:text-orange-600 truncate">
+                    {n.badge}
+                  </div>
+                  <div className="text-[9px] text-slate-400 font-mono">
+                    #{n.id}
+                  </div>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 

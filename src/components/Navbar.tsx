@@ -463,7 +463,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Active Status Indicator */}
           <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-orange-50/60 border border-orange-200/60 text-[10px] text-orange-700 font-bold uppercase tracking-wider">
             <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-            <span>204 Niches</span>
+            <span>210 Niches</span>
           </div>
 
           {/* Favorites Button */}

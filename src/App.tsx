@@ -86,6 +86,7 @@ export default function App() {
 
   // Global search state synced across Header and Prompt Library
   const [globalSearchQuery, setGlobalSearchQuery] = useState<string>('');
+  const [selectedLibraryNiche, setSelectedLibraryNiche] = useState<string>('all');
 
   // Onboarding Feature Tour Modal state
   const [isTourOpen, setIsTourOpen] = useState(false);
@@ -349,6 +350,11 @@ export default function App() {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   onOpenTour={() => setIsTourOpen(true)}
+                  onSelectNiche={(niche) => {
+                    setSelectedLibraryNiche(niche);
+                    const el = document.getElementById('library-search-input');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
                 />
                 <PromptLibrary
                   onCopy={handleCopy}
@@ -361,6 +367,12 @@ export default function App() {
                   onSelectSkill={handleSelectSkill}
                   searchQuery={globalSearchQuery}
                   onSearchChange={setGlobalSearchQuery}
+                  selectedNiche={selectedLibraryNiche}
+                  onSelectNiche={setSelectedLibraryNiche}
+                  onNavigateToFineTuning={() => {
+                    setActiveTab('finetuning');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                 />
               </>
             )}

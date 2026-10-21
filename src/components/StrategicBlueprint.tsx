@@ -96,8 +96,8 @@ export const StrategicBlueprint: React.FC<StrategicBlueprintProps> = ({ onCopy }
       body: `Stop wasting hours tweaking ChatGPT prompts that hallucinate and give fluff.
 
 Get instant lifetime access to the enterprise-grade prompt vault:
-✦ 100,000 Tested Prompts across 204 specialized business niches
-✦ 3 Elite Frameworks: Ruben Hassid Fable 5 (11-block) + GEPA 6-block + GEPA⁺ Unified
+✦ 100,000 Tested Prompts across 210 specialized business niches
+✦ 4 Elite Production Frameworks: 9-Step Cognitive Mediation, Ruben Hassid Fable 5 (11-block), GEPA 6-block & GEPA⁺ Unified
 ✦ 18 Production Automations (n8n, Make & Zapier JSON workflows)
 ✦ 12 Autonomous Agent Blueprints with deterministic retry contracts
 ✦ Python Agent Generators for LangChain & CrewAI
@@ -110,8 +110,8 @@ Commercial rights included. Free updates forever.`
       body: `Transform generic AI outputs into high-precision, executive deliverables.
 
 Features Included:
-- 204 Niches & 2,740 Expert Personas
-- Full Fable 5 11-Block Prompt Anatomy
+- 210 Niches & 2,788 Expert Personas
+- Full 4 Production Frameworks (9-Step, Fable 5, GEPA, GEPA⁺)
 - LangChain, LangGraph & CrewAI Python Code Generators
 - DeepEval / Promptfoo Automated Evaluation Suites
 - Unsloth SFT / DPO Fine-Tuning YAML & Dataset Builders

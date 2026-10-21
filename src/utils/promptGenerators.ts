@@ -402,7 +402,7 @@ export function searchLibraryPrompts(
   const results: PromptItem[] = [];
   let matchCount = 0;
 
-  // Scan across 2,500 deterministic prompt indices spanning all 204 niches
+  // Scan across 2,500 deterministic prompt indices spanning all 210 niches
   const sampleSize = 2500;
   for (let i = 0; i < sampleSize; i++) {
     const nIdx = i % NICHES_LIST.length;
