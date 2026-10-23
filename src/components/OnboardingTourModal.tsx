@@ -114,7 +114,7 @@ export const OnboardingTourModal: React.FC<OnboardingTourModalProps> = ({
           },
           {
             icon: Sparkles,
-            title: '3. 100K Vault & 210 Niches',
+            title: '3. 105K Vault & 210 Niches',
             desc: 'Pre-indexed repository of production-ready prompts spanning enterprise finance, healthcare, software, and marketing.'
           }
         ],
@@ -336,7 +336,7 @@ export const OnboardingTourModal: React.FC<OnboardingTourModalProps> = ({
           },
           {
             icon: Compass,
-            title: '100K Prompt Vault',
+            title: '105K Prompt Vault',
             desc: 'Search, filter, and batch export thousands of prompts across 210 specialized enterprise niches.'
           }
         ],
@@ -745,7 +745,7 @@ export const OnboardingTourModal: React.FC<OnboardingTourModalProps> = ({
                     Prompt Library
                   </strong>
                   <span className="text-[11px] text-slate-500 group-hover:text-slate-300">
-                    Explore 100K prompts across 210 niches
+                    Explore 105K prompts across 210 niches
                   </span>
                 </button>
               </div>

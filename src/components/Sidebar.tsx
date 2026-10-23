@@ -77,9 +77,9 @@ const ALL_NAV_CATEGORIES: NavCategory[] = [
       {
         id: 'library',
         label: 'Prompts Vault',
-        description: '100,000 verified prompts',
+        description: '105,000 verified prompts',
         icon: BookOpen,
-        badge: '100K',
+        badge: '105K',
         badgeColor: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-800'
       },
       {
@@ -659,7 +659,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="grid grid-cols-2 gap-1.5 text-[10px] text-slate-500 dark:text-slate-400">
                 <div className="p-1.5 rounded-lg bg-white/80 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50">
                   <div className="text-[9px] font-medium text-slate-400">Vault Prompts</div>
-                  <div className="font-black text-slate-900 dark:text-white">100,000</div>
+                  <div className="font-black text-slate-900 dark:text-white">105,000</div>
                 </div>
                 <div className="p-1.5 rounded-lg bg-white/80 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50">
                   <div className="text-[9px] font-medium text-slate-400">Avg Latency</div>

@@ -21,7 +21,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed max-w-sm">
-              The premier prompt engineering workspace with 100,000 expert prompts, 210 niches, Ruben Hassid's 11-block Fable 5 anatomy, and agentic Python code generators.
+              The premier prompt engineering workspace with 105,000 expert prompts, 210 niches, Ruben Hassid's 11-block Fable 5 anatomy, and agentic Python code generators.
             </p>
             <div className="text-[11px] text-slate-400 font-medium">
               Built with precision for engineers, prompt architects, and AI founders.
@@ -73,7 +73,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         {/* Bottom bar */}
         <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <div>
-            © 2026 PromptOS Vault. 100,000 Prompts · 210 Niches · All Rights Reserved.
+            © 2026 PromptOS Vault. 105,000 Prompts · 210 Niches · All Rights Reserved.
           </div>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 font-medium text-emerald-600">

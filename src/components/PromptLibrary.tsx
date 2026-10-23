@@ -72,7 +72,7 @@ interface PromptLibraryProps {
 }
 
 const ITEMS_PER_PAGE = 30;
-const TOTAL_VIRTUAL_PROMPTS = 100000;
+const TOTAL_VIRTUAL_PROMPTS = 105000;
 
 export const PromptLibrary: React.FC<PromptLibraryProps> = ({
   onCopy,
@@ -435,7 +435,7 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            placeholder="Search 100,000 expert prompts... (Press Ctrl+K)"
+            placeholder="Search 105,000 expert prompts... (Press Ctrl+K)"
             className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
           />
           {searchQuery && (
@@ -593,7 +593,7 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
           >
             <span>✦ All</span>
             <span className={`text-[10px] px-1.5 py-0.2 rounded-md ${selectedNiche === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
-              100K
+              105K
             </span>
           </button>
 

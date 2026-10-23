@@ -42,12 +42,12 @@ export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpe
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-orange-200/80 shadow-xs text-xs font-bold text-orange-700 mb-6">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
           <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500/20" />
-          <span>Ultra-Modern Edition · 100K Prompts · 210 Niches · 4 Production Frameworks</span>
+          <span>Ultra-Modern Edition · 105K Prompts · 210 Niches · 4 Production Frameworks</span>
         </div>
 
         {/* Main Heading */}
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.1] mb-5">
-          100,000{' '}
+          105,000{' '}
           <span className="bg-gradient-to-r from-orange-600 via-red-500 to-rose-600 bg-clip-text text-transparent">
             Expert AI Prompts
           </span>
@@ -92,9 +92,9 @@ export const Hero: React.FC<HeroProps> = ({ onQuickStart, onExploreFable5, onOpe
 
         {/* Live Key Stats in Ultra-White Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto p-3 rounded-2xl bg-white border border-orange-200/60 shadow-lg shadow-orange-500/5 mb-8">
-          <div className="bg-orange-50/40 p-3.5 rounded-xl border border-orange-100 text-center">
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              100,000
+          <div className="bg-orange-50/40 p-3.5 rounded-xl border border-orange-100 text-center relative group">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-1.5">
+              <span>105,000</span>
             </div>
             <div className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold mt-1">
               Prompts

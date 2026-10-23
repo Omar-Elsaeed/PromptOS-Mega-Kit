@@ -358,7 +358,7 @@ export function scorePromptQuality(promptText: string): PromptQualityScore {
   };
 }
 
-// Generate prompt item on-the-fly for any index (1 to 100,000)
+// Generate prompt item on-the-fly for any index (1 to 105,000)
 export function getPromptByIndex(globalIndex: number): PromptItem {
   const nicheIndex = Math.floor(globalIndex / 500) % NICHES_LIST.length;
   const niche = NICHES_LIST[nicheIndex];
@@ -424,9 +424,9 @@ export function searchLibraryPrompts(
     }
   }
 
-  // Estimate total matching pool based on the 100,000 prompt vault size
+  // Estimate total matching pool based on the 105,000 prompt vault size
   const totalEstimatedMatches =
-    matchCount > 0 ? Math.max(matchCount, Math.round(matchCount * (100000 / sampleSize))) : 0;
+    matchCount > 0 ? Math.max(matchCount, Math.round(matchCount * (105000 / sampleSize))) : 0;
 
   return { results, totalEstimatedMatches };
 }

@@ -10,7 +10,7 @@ const STRATEGY_1_PLAN = `# STRATEGY 1: MICRO-NICHE DIGITAL PACKS ($3,900 - $7,50
 Target Market: Solopreneurs, Fractional Executives, Specialists
 
 1. PACKAGING METHODOLOGY
-• Slice the 100,000 vault into hyper-targeted packs:
+• Slice the 105,000 vault into hyper-targeted packs:
   - "500 High-Converting Prompts for Real Estate Wholesalers"
   - "750 B2B Outbound Cold Outreach & Follow-up Blueprints"
   - "1,200 DevOps Incident Response & SRE Prompts"
@@ -92,11 +92,11 @@ export const StrategicBlueprint: React.FC<StrategicBlueprintProps> = ({ onCopy }
   const salesCopyKits = [
     {
       platform: 'Gumroad / LemonSqueezy Product Landing Page',
-      headline: 'The Ultimate 100,000 AI Prompt Engineering Vault for Builders & Founders',
+      headline: 'The Ultimate 105,000 AI Prompt Engineering Vault for Builders & Founders',
       body: `Stop wasting hours tweaking ChatGPT prompts that hallucinate and give fluff.
 
 Get instant lifetime access to the enterprise-grade prompt vault:
-✦ 100,000 Tested Prompts across 210 specialized business niches
+✦ 105,000 Tested Prompts across 210 specialized business niches
 ✦ 4 Elite Production Frameworks: 9-Step Cognitive Mediation, Ruben Hassid Fable 5 (11-block), GEPA 6-block & GEPA⁺ Unified
 ✦ 18 Production Automations (n8n, Make & Zapier JSON workflows)
 ✦ 12 Autonomous Agent Blueprints with deterministic retry contracts
@@ -106,7 +106,7 @@ Commercial rights included. Free updates forever.`
     },
     {
       platform: 'AppSumo / ProductHunt Launch Pitch',
-      headline: '100,000 Precision AI Prompts + Agentic Architecture Suite (Lifetime Access)',
+      headline: '105,000 Precision AI Prompts + Agentic Architecture Suite (Lifetime Access)',
       body: `Transform generic AI outputs into high-precision, executive deliverables.
 
 Features Included:
@@ -225,7 +225,7 @@ Include:
               <div className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">Strategy 01</div>
               <h3 className="text-lg font-black text-slate-900 mb-2">Micro-Niche Digital Packs</h3>
               <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                Slice the 100,000 vault into hyper-targeted packs (e.g. "500 Prompts for Real Estate Investors", "800 Prompts for Fractional CMOs").
+                Slice the 105,000 vault into hyper-targeted packs (e.g. "500 Prompts for Real Estate Investors", "800 Prompts for Fractional CMOs").
               </p>
               <div className="p-3 rounded-xl bg-orange-50/60 border border-orange-200/60 text-xs text-slate-700 space-y-1">
                 <div><strong>Price Point:</strong> $29 - $49 one-time</div>

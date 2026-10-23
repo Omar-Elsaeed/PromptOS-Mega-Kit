@@ -120,7 +120,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  // Instant real-time matching results across the 100K prompt vault
+  // Instant real-time matching results across the 105K prompt vault
   const { results: searchResults, totalEstimatedMatches } = useMemo(() => {
     if (!currentQuery.trim()) {
       return { results: [], totalEstimatedMatches: 0 };
@@ -285,7 +285,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               Prompt<span className="text-orange-600">OS</span>
             </span>
             <div className="hidden lg:flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200/80 text-[10px] font-bold text-orange-700">
-              <span>100K Vault</span>
+              <span>105K Vault</span>
             </div>
           </button>
         </div>
@@ -307,7 +307,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onChange={(e) => handleQueryChange(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
               onKeyDown={handleSearchKeyDown}
-              placeholder="Search 100K prompts... (Ctrl+K)"
+              placeholder="Search 105K prompts... (Ctrl+K)"
               className="w-full py-1.5 pl-2 pr-7 bg-transparent text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none font-medium"
             />
 
@@ -420,7 +420,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span>Show all filtered prompts in Library</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
-                    <span className="text-[10px] text-slate-400">100,000 Prompts Indexed</span>
+                    <span className="text-[10px] text-slate-400">105,000 Prompts Indexed</span>
                   </div>
                 </>
               ) : (

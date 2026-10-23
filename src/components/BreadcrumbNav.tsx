@@ -57,7 +57,7 @@ const TAB_METADATA: Record<TabType, TabMeta> = {
     categoryIcon: Wand2,
     label: 'Prompts Vault',
     icon: BookOpen,
-    badge: '100K',
+    badge: '105K',
     subCategoryDefault: '210 Industry Niches'
   },
   builder: {
